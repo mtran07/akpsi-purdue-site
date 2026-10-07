@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AKPsi Purdue: chapter website
 
-## Getting Started
+The new website for Alpha Kappa Psi, Pi Omega Chapter, replacing the Wix site at
+[akpsipurdue.com](https://www.akpsipurdue.com). Built with Next.js and Tailwind CSS,
+hosted on Vercel, owned by the chapter's GitHub organization.
 
-First, run the development server:
+**Status:** in development on a Vercel preview link. Target launch is **Dec 7, 2026**.
+The full plan lives in the migration plan doc (ask the Tech Committee Head for the link).
+
+## Get started (about 15 minutes)
+
+You need [Node.js 22+](https://nodejs.org) and Git.
 
 ```bash
+git clone https://github.com/<chapter-org>/akpsi-purdue-site.git
+cd akpsi-purdue-site
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. Edits to any file reload the page automatically.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+New to Next.js? Do the official [Next.js tutorial](https://nextjs.org/learn) first. Then read
+[CONTRIBUTING.md](CONTRIBUTING.md) before opening your first pull request.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Where things live
 
-## Learn More
+```
+src/
+  app/                 One folder per page. page.tsx in each folder is the page.
+    page.tsx           Home (/)
+    about/             /about
+    members/           /members: executive board + committee heads
+    media/             /media: rush video + Instagram
+    rush/              /rush
+    sponsors/          /sponsors
+    contact/           /contact
+    portal/            /portal: member sign-in (placeholder until spring)
+    layout.tsx         Header, footer, fonts, site-wide metadata
+    globals.css        Brand colors (navy and gold) and fonts
+  components/          Shared pieces: header, footer, page header, person card
+  data/                ALL page content as JSON. Edit these, not the pages.
+scripts/
+  pull-wix-images.mjs  Copies headshots off Wix before the plan is cancelled
+docs/
+  TASKS.md             The starter task list. Pick one up here.
+  editing-content.md   Guide for officers updating members, rush and sponsors
+next.config.ts         Redirects from old Wix URLs, image settings
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Content rules
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Content lives in `src/data/*.json`.** A new pledge class or exec board means
+  editing one JSON file, not a page. See [docs/editing-content.md](docs/editing-content.md).
+- **No personal contact info in this repo or on public pages.** No phone numbers or
+  personal emails, ever. Member and alumni directories go behind the portal login.
+- **No large files.** Videos go on YouTube (unlisted) and get embedded. Photos should be
+  under 500 KB each.
+- **No payments or ads on the site.** Vercel's free Hobby plan only allows
+  non-commercial use. Dues stay on the existing payment platform.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Commands
 
-## Deploy on Vercel
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Local dev server at localhost:3000 |
+| `npm run build` | Production build; run before opening a PR |
+| `npm run lint` | Check code style |
+| `npm run images:pull` | Download Wix-hosted photos into `public/images` |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploys
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Every push to any branch gets its own Vercel preview link, posted on the pull request.
+Merging into `main` updates the main preview link. The public domain points here only
+after exec signs off at launch.
+
+## Handoff
+
+This repo, the Vercel project and the domain registrar all belong to the shared chapter
+tech account, never a personal one. When you hand off the Tech Chair role, transfer
+GitHub org ownership and update this README.

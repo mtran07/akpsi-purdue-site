@@ -1,0 +1,65 @@
+{
+  "term": "Spring 2026",
+  "members": [
+    {
+      "name": "Youseph Ali",
+      "role": "President",
+      "linkedin": "https://www.linkedin.com/in/yousephali/",
+      "photo": "https://static.wixstatic.com/media/ca0c37_6a5e42b56c1246128725c2f7e5c41517~mv2.jpg"
+    },
+    {
+      "name": "Anisha Kowdle",
+      "role": "Executive Vice President",
+      "linkedin": "https://www.linkedin.com/in/anishakowdle",
+      "photo": "https://static.wixstatic.com/media/ca0c37_07d5f76c0213493392948ff8231a33ca~mv2.jpg"
+    },
+    {
+      "name": "Maxwell Klug",
+      "role": "VP of Membership",
+      "linkedin": "https://www.linkedin.com/in/maxwell-klug",
+      "photo": "https://static.wixstatic.com/media/ca0c37_e228b99e34fb4dc29a50edb0431d20a5~mv2.jpg"
+    },
+    {
+      "name": "Kaawon Kim",
+      "role": "VP of Professional Development",
+      "linkedin": "https://www.linkedin.com/in/kaawonkim",
+      "photo": "https://static.wixstatic.com/media/ca0c37_1d08487a39814dc9aa937c8b3d3f0052~mv2.jpg"
+    },
+    {
+      "name": "Paul Warfel",
+      "role": "VP of Finance",
+      "linkedin": "https://www.linkedin.com/in/paulwarfel",
+      "photo": "https://static.wixstatic.com/media/ca0c37_da9f7d613a2e49468ff33b733db90cd1~mv2.jpg"
+    },
+    {
+      "name": "Eliana Gross",
+      "role": "VP of Public Relations",
+      "linkedin": "https://www.linkedin.com/in/elianagross/",
+      "photo": "https://static.wixstatic.com/media/ca0c37_0fcd646b7d644f2ab085d312131d812f~mv2.jpg"
+    },
+    {
+      "name": "Neena Naikar",
+      "role": "VP of Alumni Relations",
+      "linkedin": "https://www.linkedin.com/in/neena-naikar/",
+      "photo": "https://static.wixstatic.com/media/ca0c37_d415331d1f1f4267934fefa971ab1f2f~mv2.jpg"
+    },
+    {
+      "name": "Tejhasvi Gudur",
+      "role": "Master of Rituals",
+      "linkedin": "https://www.linkedin.com/in/tejhasvi-gudur/",
+      "photo": "https://static.wixstatic.com/media/ca0c37_0f5475b8aec743f5b13d621fe1f01436~mv2.jpg"
+    },
+    {
+      "name": "Himani Ashok",
+      "role": "Secretary",
+      "linkedin": "https://www.linkedin.com/in/himaniashok/",
+      "photo": "https://static.wixstatic.com/media/ca0c37_d6ef0974d5ef4f5db74d0732b1130a56~mv2.jpg"
+    },
+    {
+      "name": "Dhruthi Sirigibathina",
+      "role": "Chaplain",
+      "linkedin": "https://www.linkedin.com/in/dhruti-sirigibathina/",
+      "photo": "https://static.wixstatic.com/media/ca0c37_9320c73b9719463a8b472fd7937381db~mv2.jpg"
+    }
+  ]
+}

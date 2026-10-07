@@ -1,0 +1,16 @@
+{
+  "term": "Fall 2026",
+  "isOpen": false,
+  "closedMessage": "Fall 2026 rush has ended. Spring 2027 rush details will be posted here and on our Instagram.",
+  "applicationUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdUHch4Lrzg6ETbV_m7DhUqH0YKImJsZmGZh2Vmbrg_KHwiEw/viewform",
+  "applicationDeadline": "Thursday, Sept 18, 5:00 PM",
+  "eligibility": "Rushees must attend one Callout, one Professional Rush and one Social Rush event to be eligible to apply.",
+  "events": [
+    { "type": "Callout", "date": "Wednesday, 8/30", "time": "6:45–9:00 PM", "location": "WALC 1055" },
+    { "type": "Callout", "date": "Thursday, 9/2", "time": "8:00–10:30 PM", "location": "WALC 1055" },
+    { "type": "Professional Rush", "date": "Wednesday, 9/9", "time": "8:45–10:00 PM", "location": "WALC 1132" },
+    { "type": "Professional Rush", "date": "Friday, 9/11", "time": "8:45–10:00 PM", "location": "WALC 1132" },
+    { "type": "Social Rush", "date": "Wednesday, 9/16", "time": "8:00–10:00 PM", "location": "WALC 1018" },
+    { "type": "Social Rush", "date": "Thursday, 9/17", "time": "8:00–10:00 PM", "location": "WALC 1018" }
+  ]
+}

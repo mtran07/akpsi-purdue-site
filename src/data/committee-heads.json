@@ -1,0 +1,17 @@
+{
+  "term": "Spring 2026",
+  "committees": [
+    { "committee": "Recruitment", "heads": ["Sairam Ande", "Paula Ramos Perez"] },
+    { "committee": "Professional Internal", "heads": ["Sebastian Talarek"] },
+    { "committee": "Professional External", "heads": ["Anjali Bhawnani", "Hannah Cha"] },
+    { "committee": "Technology", "heads": ["Rohit Kelkar"] },
+    { "committee": "Marketing", "heads": ["Yusuf Javaid", "Rain Song"] },
+    { "committee": "Service", "heads": ["Vishwadeep Singh", "Dhyana Pasupu"] },
+    { "committee": "Diversity, Equity, and Inclusion", "heads": ["Pratham Trivedi"] },
+    { "committee": "Alumni Relations", "heads": ["Neha Pudota", "Melissa Tran"] },
+    { "committee": "Fundraising", "heads": ["Jake Futterman"] },
+    { "committee": "Special Events", "heads": ["Aarya Iyer", "Kylie Hynes"] },
+    { "committee": "Brotherhood Relations", "heads": ["Shriya Mummaneni", "Esha Rai"] },
+    { "committee": "Historian", "heads": ["Ashika Gogineni"] }
+  ]
+}

@@ -1,26 +1,45 @@
 @import "tailwindcss";
 
+/*
+  Brand tokens. AKΨ's colors are navy and gold; before launch the design
+  reviewer should check these against the national brand guidelines.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #0e2a47;
+  --navy-deep: #081b30;
+  --gold: #c9a227;
+  --gold-soft: #f3e9c6;
+  --ink: #16202b;
+  --muted: #5b6673;
+  --line: #e3e6ea;
+  --paper: #ffffff;
+  --paper-alt: #f6f5f1;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-paper: var(--paper);
+  --color-paper-alt: var(--paper-alt);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Libre Baskerville", Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
 }

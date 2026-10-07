@@ -1,0 +1,26 @@
+{
+  "fraternity": "Alpha Kappa Psi was founded in 1904 to educate its members and the public to appreciate and demand higher ideals in business, and to further the welfare of its members during college and beyond. The Pi Omega Chapter was established at Purdue University in 2000.",
+  "mission": "Pi Omega is a gender-inclusive professional business fraternity open to all majors, housed within the Daniels School of Business. With more than 100 brothers and alumni, we focus on professional development: resume building, networking and interview preparation.",
+  "values": [
+    {
+      "name": "Brotherhood",
+      "description": "Lasting bonds built through social events and friendships."
+    },
+    {
+      "name": "Integrity",
+      "description": "High standards upheld through mentorship."
+    },
+    {
+      "name": "Service",
+      "description": "Giving back to the community through food drives and fundraising."
+    },
+    {
+      "name": "Unity",
+      "description": "A chapter that celebrates diversity, with more than 20 languages spoken among our brothers."
+    },
+    {
+      "name": "Knowledge",
+      "description": "Professional development opportunities for every member."
+    }
+  ]
+}

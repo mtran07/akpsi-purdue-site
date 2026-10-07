@@ -1,0 +1,25 @@
+{
+  "chapterName": "Alpha Kappa Psi",
+  "chapterShort": "AKΨ",
+  "chapter": "Pi Omega Chapter",
+  "school": "Purdue University",
+  "tagline": "Shaping People, Shaping Business",
+  "founded": {
+    "fraternity": 1904,
+    "chapter": 2000
+  },
+  "address": "Purdue University, West Lafayette, IN 47907",
+  "social": {
+    "instagram": "https://www.instagram.com/akpsi_purdue/",
+    "linkedin": "https://www.linkedin.com/in/akpsipiomega/"
+  },
+  "contactFormUrl": "",
+  "nav": [
+    { "label": "About", "href": "/about" },
+    { "label": "Members", "href": "/members" },
+    { "label": "Media", "href": "/media" },
+    { "label": "Rush", "href": "/rush" },
+    { "label": "Sponsors", "href": "/sponsors" },
+    { "label": "Contact", "href": "/contact" }
+  ]
+}
