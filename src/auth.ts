@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { fetchMembers } from "@/lib/portal-data";
+import { findMember } from "@/lib/portal-data";
 
 /*
   Sign-in for the member portal: "Sign in with Google", allowed only for
@@ -30,9 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!profile?.email || profile.email_verified !== true) return false;
 
       try {
-        const members = await fetchMembers();
-        const email = profile.email.trim().toLowerCase();
-        return members.some((member) => member.email === email);
+        return (await findMember(profile.email)) !== null;
       } catch (error) {
         // If the sheet can't be reached, fail closed: nobody gets in.
         console.error("Member check failed during sign-in", error);

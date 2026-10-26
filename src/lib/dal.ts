@@ -2,14 +2,14 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { fetchAlumni, fetchMembers, fetchResources } from "@/lib/portal-data";
+import { fetchAlumni, fetchResources, findMember } from "@/lib/portal-data";
 import type { Alumnus, Resource } from "@/lib/portal-types";
 
 /*
   Data access layer for the member portal. Every read of brother-only data
   goes through here, and every function re-checks membership against the
   sheet. Being signed in is not enough: the email must still be on the
-  Members tab, so removing someone takes effect within minutes, even
+  Members tab, so removing someone takes effect within a minute, even
   mid-session.
 */
 
@@ -24,8 +24,7 @@ export const getViewer = cache(async (): Promise<Viewer> => {
   const email = session?.user?.email?.trim().toLowerCase();
   if (!email) return { status: "signed-out" };
 
-  const members = await fetchMembers();
-  const member = members.find((m) => m.email === email);
+  const member = await findMember(email);
   if (!member) return { status: "not-member", email };
 
   return {

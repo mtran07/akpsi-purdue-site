@@ -34,10 +34,12 @@ headers, spelled as below (capitalization doesn't matter):
 | jdoe@purdue.edu | Jane Doe | Active |
 
 - One row per brother. Use the Google account they'll sign in with.
-- Set Status to `Inactive` or `Removed` (or delete the row) to take access away. It takes
-  effect within a few minutes, even if they're signed in.
-- Purdue emails stop working after graduation. Alumni who should keep access need a
-  personal Gmail on this list.
+- **Only `Active` (or a blank Status) gets in.** Any other value (`Inactive`, `Graduated`,
+  `Suspended`, a typo) locks that person out, as does deleting the row. Changes take effect
+  within a minute, even if they're signed in.
+- Purdue emails stop working after graduation. If graduated brothers should keep access,
+  add `'alumni'` to `ALLOWED_STATUSES` at the top of the Apps Script, mark them `Alumni`, and
+  list a personal Gmail.
 - The VP of Membership or Secretary should own this tab, not Tech.
 
 **Resources**: links shown on the portal home page
@@ -75,8 +77,8 @@ This is a *new* script, separate from the one the old Netlify directory uses.
    - Who has access: **Anyone**. The key is what protects it.
 5. Click **Deploy**, approve the permissions prompt, and copy the **Web app URL**
    (ends in `/exec`).
-6. **Check it.** In a browser, open
-   `<web app URL>?action=columns&key=<your PORTAL_KEY>`. You'll see which alumni columns
+6. **Check it.** In a **private/incognito** window (so the key isn't saved in your
+   history), open `<web app URL>?action=columns&key=<your PORTAL_KEY>`. You'll see which alumni columns
    were recognized. If a field like `company` is empty, add your header to `ALUMNI_FIELDS`
    at the top of the script, then **Deploy → Manage deployments → Edit → New version**.
    The URL stays the same.
@@ -110,7 +112,9 @@ the main `.vercel.app` link.
 ## 4. Add the environment variables in Vercel
 
 Vercel → your project → **Settings → Environment Variables**. Add each one for
-**Production and Preview**:
+**Production only**. Leave Preview unchecked, so that every branch someone pushes doesn't get
+a key to the alumni sheet. (Previews couldn't use Google sign-in anyway; their portal just
+shows "Coming soon".)
 
 | Name | Value |
 | --- | --- |
@@ -119,7 +123,7 @@ Vercel → your project → **Settings → Environment Variables**. Add each one
 | `AUTH_GOOGLE_SECRET` | Client secret from step 3 |
 | `PORTAL_SCRIPT_URL` | Web app URL from step 2 |
 | `PORTAL_SCRIPT_KEY` | The same `PORTAL_KEY` you set in step 2 |
-| `ANTHROPIC_API_KEY` | *Optional.* A **new** key for the coffee-chat drafts (see step 6) |
+| `ANTHROPIC_API_KEY` | *Optional.* A **new** key for the coffee-chat drafts (see step 6). Set a monthly spend limit on it in the Anthropic Console |
 
 Then go to **Deployments** → the latest one → **⋯ → Redeploy**, because environment
 variables only apply to new deployments. Until all five required variables are set, the
@@ -149,7 +153,7 @@ anyone can read both with View Source. Once the portal works:
 
 | To… | Do this |
 | --- | --- |
-| Add or remove a brother | Edit the **Members** tab. No code or redeploy needed |
+| Add or remove a brother | Edit the **Members** tab (Status `Active` or anything else). No code or redeploy needed |
 | Add a resource link | Add a row to the **Resources** tab |
 | Fix an alum's info | Edit the alumni tab. Changes show on the next page load |
 | Recognize a new alumni column | Edit `ALUMNI_FIELDS` in the Apps Script, deploy a new version |

@@ -3,6 +3,7 @@
 import { signIn, signOut } from "@/auth";
 import { getViewer } from "@/lib/dal";
 import { fetchAlumni } from "@/lib/portal-data";
+import type { Alumnus } from "@/lib/portal-types";
 
 export async function signInWithGoogle() {
   await signIn("google", { redirectTo: "/portal" });
@@ -19,7 +20,8 @@ export type DraftResult =
   | { ok: false; error: string };
 
 // Simple per-member limit so the API key can't be run up. It's per server
-// instance, which is fine at chapter scale.
+// instance, so the true ceiling is 20 × running instances; fine at chapter
+// scale. Set a monthly spend limit on the key in the Anthropic Console too.
 const DRAFTS_PER_HOUR = 20;
 const recentDrafts = new Map<string, number[]>();
 
@@ -50,8 +52,14 @@ export async function draftCoffeeChat(alumnusId: string, note: string): Promise<
   }
 
   // Look the alum up on the server rather than trusting details sent from the browser.
-  const alumni = await fetchAlumni();
-  const alum = alumni.find((a) => a.id === alumnusId);
+  // Errors stay inside the dialog instead of replacing the whole directory page.
+  let alum: Alumnus | undefined;
+  try {
+    alum = (await fetchAlumni()).find((a) => a.id === alumnusId);
+  } catch (error) {
+    console.error("Alumni lookup failed during draft", error);
+    return { ok: false, error: "The directory couldn't be reached. Try again in a minute." };
+  }
   if (!alum) return { ok: false, error: "Couldn't find that alum. Refresh and try again." };
 
   const about = [

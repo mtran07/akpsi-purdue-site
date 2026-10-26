@@ -1,5 +1,4 @@
 import "server-only";
-import { cacheLife } from "next/cache";
 import type { Alumnus, Member, Resource } from "@/lib/portal-types";
 
 /*
@@ -42,16 +41,43 @@ async function callScript<T>(action: ScriptAction): Promise<T> {
   return body.data;
 }
 
-/**
- * The member allowlist. Cached for a few minutes so every page view doesn't
- * hit Apps Script; removing someone from the sheet takes effect within minutes.
- * Never rendered: it's only used for the membership check.
- */
-export async function fetchMembers(): Promise<Member[]> {
-  "use cache";
-  cacheLife("minutes");
-  const members = await callScript<Member[]>("members");
-  return members.map((m) => ({ ...m, email: m.email.trim().toLowerCase() }));
+/*
+  The member allowlist, cached in this module for 60 seconds so every page
+  view doesn't hit Apps Script. Removing someone from the sheet takes effect
+  within a minute.
+
+  Deliberately NOT a `"use cache"` function: Next registers those as callable
+  server references, and the roster must never be returnable to a caller.
+  The only export is a single-email lookup.
+*/
+const MEMBERS_TTL_MS = 60_000;
+let memberCache: { at: number; byEmail: Map<string, Member> } | null = null;
+let memberRefresh: Promise<Map<string, Member>> | null = null;
+
+async function loadMembers(): Promise<Map<string, Member>> {
+  if (memberCache && Date.now() - memberCache.at < MEMBERS_TTL_MS) return memberCache.byEmail;
+
+  // Share one in-flight refresh between concurrent requests.
+  memberRefresh ??= callScript<Member[]>("members")
+    .then((members) => {
+      const byEmail = new Map(
+        members.map((m) => [m.email.trim().toLowerCase(), { ...m, email: m.email.trim().toLowerCase() }]),
+      );
+      memberCache = { at: Date.now(), byEmail };
+      return byEmail;
+    })
+    .finally(() => {
+      memberRefresh = null;
+    });
+
+  // If the refresh fails, throw rather than fall back to a stale list (fail closed).
+  return memberRefresh;
+}
+
+/** The member record for this email, or null if they're not on the Members tab. */
+export async function findMember(email: string): Promise<Member | null> {
+  const members = await loadMembers();
+  return members.get(email.trim().toLowerCase()) ?? null;
 }
 
 /** Alumni directory rows. Fetched fresh on each request, never cached. */

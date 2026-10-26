@@ -75,7 +75,15 @@ function doGet(e) {
 
 /* ---------------- Readers (pure functions, no Google APIs) ---------------- */
 
-/** Members tab: Email (required) | Name | Status. Rows with Status "inactive" or "removed" are skipped. */
+/**
+ * Who may sign in, by the Members tab's Status column. Anything else
+ * (Inactive, Removed, Graduated, Suspended, a typo...) is locked out.
+ * A blank Status counts as Active. Add "alumni" here only if graduated
+ * brothers should keep portal access.
+ */
+var ALLOWED_STATUSES = ['', 'active'];
+
+/** Members tab: Email (required) | Name | Status. */
 function readMembers_(table) {
   var emailCol = findColumns_(table.headers, ['email', 'emailaddress', 'googleemail'])[0];
   var nameCol = findColumns_(table.headers, ['name', 'fullname'])[0];
@@ -87,7 +95,7 @@ function readMembers_(table) {
     var email = String(row[emailCol] || '').trim().toLowerCase();
     if (email.indexOf('@') < 1) return;
     var status = statusCol === undefined ? '' : String(row[statusCol] || '').trim().toLowerCase();
-    if (status === 'inactive' || status === 'removed' || status === 'no') return;
+    if (ALLOWED_STATUSES.indexOf(status) === -1) return;
     members.push({ email: email, name: nameCol === undefined ? '' : String(row[nameCol] || '').trim() });
   });
   return members;
@@ -183,10 +191,14 @@ function firstValue_(row, columns) {
   return '';
 }
 
+/** Returns an https LinkedIn URL, or '' unless the host really is linkedin.com. */
 function normalizeLinkedIn_(value) {
-  if (!value || value.toLowerCase().indexOf('linkedin.com/') === -1) return '';
-  var url = value.replace(/^https?:\/\//i, '').replace(/^\/+/, '');
-  return 'https://' + url;
+  if (!value) return '';
+  var rest = String(value).trim().replace(/^https?:\/\//i, '').replace(/^\/+/, '');
+  var host = rest.split(/[\/?#]/)[0].toLowerCase();
+  if (host !== 'linkedin.com' && !/^[a-z0-9-]+\.linkedin\.com$/.test(host)) return '';
+  if (/[\s"'<>]/.test(rest)) return '';
+  return 'https://' + rest;
 }
 
 function safeEqual_(a, b) {
