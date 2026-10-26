@@ -42,7 +42,7 @@ headers, spelled as below (capitalization doesn't matter):
   list a personal Gmail.
 - The VP of Membership or Secretary should own this tab, not Tech.
 
-**Resources**: links shown on the portal home page
+**Resources** (optional): links shown on the portal home page
 
 | Title | URL | Description | Category |
 | --- | --- | --- | --- |

@@ -62,6 +62,8 @@ function doGet(e) {
       case 'alumni':
         return json_({ ok: true, data: readAlumni_(readTable_(spreadsheet, alumniTab)) });
       case 'resources':
+        // The Resources tab is optional: no tab means no links yet.
+        if (!spreadsheet.getSheetByName(RESOURCES_TAB)) return json_({ ok: true, data: [] });
         return json_({ ok: true, data: readResources_(readTable_(spreadsheet, RESOURCES_TAB)) });
       case 'columns':
         return json_({ ok: true, data: describeColumns_(readTable_(spreadsheet, alumniTab).headers) });

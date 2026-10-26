@@ -47,7 +47,16 @@ export async function getAlumniForMember(): Promise<Alumnus[]> {
   return alumni.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export async function getResourcesForMember(): Promise<Resource[]> {
+/**
+ * Brother resources, or null if they couldn't be loaded. A broken or missing
+ * Resources tab only hides that section; it doesn't take down the portal.
+ */
+export async function getResourcesForMember(): Promise<Resource[] | null> {
   await requireMember();
-  return fetchResources();
+  try {
+    return await fetchResources();
+  } catch (error) {
+    console.error("Couldn't load portal resources", error);
+    return null;
+  }
 }
