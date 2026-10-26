@@ -1,24 +1,69 @@
-import type { Metadata } from "next";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import { PageHeader, Section } from "@/components/page-header";
+import {
+  AlumniCallout,
+  NotConfiguredPanel,
+  NotMemberPanel,
+  PanelSkeleton,
+  ResourceList,
+  SignInPanel,
+  SignOutButton,
+} from "@/components/portal/portal-panels";
+import { getResourcesForMember, getViewer } from "@/lib/dal";
+import { isPortalConfigured } from "@/lib/portal-data";
 
-export const metadata: Metadata = {
-  title: "Member sign in",
-  robots: { index: false },
-};
-
-// Placeholder until phase 4 of the migration plan (member portal).
-// Sign-in will be limited to approved members; the alumni and member
-// directories move here, never onto public pages or into the repo.
-export default function PortalPage() {
+export default function PortalPage(props: PageProps<"/portal">) {
   return (
     <>
       <PageHeader eyebrow="For brothers" title="Member portal" />
       <Section>
-        <p className="max-w-2xl text-lg text-muted">
-          The new member portal, with the internal calendar, resources and the alumni directory, is coming in
-          spring 2027. Until then, reach out to the Technology Committee for anything you need.
-        </p>
+        {/* Everything that depends on who's signed in streams in behind this boundary. */}
+        <Suspense fallback={<PanelSkeleton />}>
+          <PortalContent searchParams={props.searchParams} />
+        </Suspense>
       </Section>
     </>
   );
+}
+
+async function PortalContent({ searchParams }: { searchParams: PageProps<"/portal">["searchParams"] }) {
+  // Always render per request: sign-in state must never be prerendered or prefetched.
+  await connection();
+  const { error } = await searchParams;
+  if (!isPortalConfigured()) return <NotConfiguredPanel />;
+
+  const viewer = await getViewer();
+
+  if (viewer.status === "signed-out") {
+    return <SignInPanel error={typeof error === "string" ? error : undefined} />;
+  }
+  if (viewer.status === "not-member") return <NotMemberPanel email={viewer.email} />;
+
+  return (
+    <div className="space-y-10">
+      <div className="flex flex-wrap items-baseline justify-between gap-4">
+        <p className="text-lg text-ink">
+          Welcome back, <span className="font-semibold">{viewer.name.split(" ")[0]}</span>.
+        </p>
+        <SignOutButton />
+      </div>
+
+      <AlumniCallout />
+
+      <div>
+        <h2 className="font-display text-2xl font-bold text-navy">Brother resources</h2>
+        <div className="mt-6">
+          <Suspense fallback={<PanelSkeleton />}>
+            <Resources />
+          </Suspense>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function Resources() {
+  const resources = await getResourcesForMember();
+  return <ResourceList resources={resources} />;
 }
