@@ -52,10 +52,15 @@ headers, spelled as below (capitalization doesn't matter):
 - Linking a Drive file doesn't share it. Make sure the file itself is shared with the
   chapter, too.
 
-**Alumni tab**: leave it as it is (currently `Sheet4`). The script recognizes the usual
-column headers (Full Name, Permanent Email, Graduation Date, College Major, Primary
-Business Position and Organization, Company Location, LinkedIn). **Phone numbers are
-never sent to the website.**
+**Alumni tab**: leave it as it is (currently `Sheet4`). The script recognizes the
+current headers (First Name, Last Name, LinkedIn, Graduation Year, Major, Current
+Position, Company, Email, Sector, Location, Prev. Companies) and common variants.
+**Phone numbers are never sent to the website.**
+
+The directory's map places alumni using a built-in list of cities
+(`src/lib/alumni-utils.ts`, `CITY_COORDS`). Alumni whose Location isn't on that list
+still appear everywhere else; the map says how many are missing. To add a city, add
+one line with its coordinates.
 
 ## 2. Deploy the Apps Script
 
