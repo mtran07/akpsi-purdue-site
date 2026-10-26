@@ -1,0 +1,54 @@
+import "server-only";
+import { cache } from "react";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { fetchAlumni, fetchMembers, fetchResources } from "@/lib/portal-data";
+import type { Alumnus, Resource } from "@/lib/portal-types";
+
+/*
+  Data access layer for the member portal. Every read of brother-only data
+  goes through here, and every function re-checks membership against the
+  sheet. Being signed in is not enough: the email must still be on the
+  Members tab, so removing someone takes effect within minutes, even
+  mid-session.
+*/
+
+export type Viewer =
+  | { status: "signed-out" }
+  | { status: "not-member"; email: string }
+  | { status: "member"; email: string; name: string };
+
+/** Who is looking at the page. Memoized for the length of one request. */
+export const getViewer = cache(async (): Promise<Viewer> => {
+  const session = await auth();
+  const email = session?.user?.email?.trim().toLowerCase();
+  if (!email) return { status: "signed-out" };
+
+  const members = await fetchMembers();
+  const member = members.find((m) => m.email === email);
+  if (!member) return { status: "not-member", email };
+
+  return {
+    status: "member",
+    email,
+    name: member.name || session?.user?.name || email,
+  };
+});
+
+/** For pages: sends anyone who isn't a current member back to /portal. */
+export async function requireMember() {
+  const viewer = await getViewer();
+  if (viewer.status !== "member") redirect("/portal");
+  return viewer;
+}
+
+export async function getAlumniForMember(): Promise<Alumnus[]> {
+  await requireMember();
+  const alumni = await fetchAlumni();
+  return alumni.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function getResourcesForMember(): Promise<Resource[]> {
+  await requireMember();
+  return fetchResources();
+}

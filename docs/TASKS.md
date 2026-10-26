@@ -46,14 +46,28 @@ redirects, brand colors and fonts, editing guide.
 | 3.2 | Exec content sign-off | S | Melissa |
 | 3.3 | Point the domain at Vercel (Option A) and update the Instagram bio link | S | Melissa |
 
+## Member portal
+
+Code is built: Google sign-in, Members allowlist, brother resources, alumni directory and
+coffee-chat drafts. What's left is setup and moving people over. Follow
+[portal-setup.md](portal-setup.md).
+
+| # | Task | Size | Owner |
+| --- | --- | --- | --- |
+| 4.0 | **Revoke the old directory's Claude API key** (it's readable in the Netlify page source) | S | Melissa |
+| 4.1 | Add **Members** and **Resources** tabs to the alumni sheet; fill Members with current brothers | S | VP Membership |
+| 4.2 | Deploy `apps-script/portal.gs` and check `?action=columns` maps every alumni field | S | Melissa |
+| 4.3 | Create the Google sign-in client and set the Vercel environment variables | S | Melissa |
+| 4.4 | Have 3–4 brothers test sign-in and the directory on the `.vercel.app` link | S | |
+| 4.5 | Retire the Netlify directory and its old Apps Script deployment | S | Melissa |
+| 4.6 | Add map and insights views to the directory, like the old site had | M | |
+
 ## Spring 2027 (after launch)
 
 | # | Task | Size | Owner |
 | --- | --- | --- | --- |
-| 4.1 | Member portal sign-in, limited to approved members | L | |
-| 4.2 | Alumni directory behind the portal (export from Wix as CSV first, never committed to the repo) | L | |
-| 4.3 | Decide on a headless CMS if officers outside Tech edit often | M | |
-| 4.4 | Handoff README for the next Tech Chair | S | |
+| 5.1 | Decide on a headless CMS if officers outside Tech edit often | M | |
+| 5.2 | Handoff README for the next Tech Chair | S | |
 
 ## Old Wix URLs already redirected
 

@@ -35,16 +35,22 @@ src/
     rush/              /rush
     sponsors/          /sponsors
     contact/           /contact
-    portal/            /portal: member sign-in (placeholder until spring)
+    portal/            /portal: brothers-only sign-in, resources, alumni directory
+    api/auth/          Google sign-in endpoints (Auth.js)
     layout.tsx         Header, footer, fonts, site-wide metadata
     globals.css        Brand colors (navy and gold) and fonts
+  auth.ts              Sign-in rules: Google account must be on the Members list
+  lib/dal.ts           The ONLY way to read brother-only data (checks membership)
   components/          Shared pieces: header, footer, page header, person card
-  data/                ALL page content as JSON. Edit these, not the pages.
+  data/                ALL public page content as JSON. Edit these, not the pages.
+apps-script/
+  portal.gs            Reads the portal's Google Sheet for the website's server
 scripts/
   pull-wix-images.mjs  Copies headshots off Wix before the plan is cancelled
 docs/
   TASKS.md             The starter task list. Pick one up here.
   editing-content.md   Guide for officers updating members, rush and sponsors
+  portal-setup.md      One-time setup for the member portal
 next.config.ts         Redirects from old Wix URLs, image settings
 ```
 
@@ -53,7 +59,11 @@ next.config.ts         Redirects from old Wix URLs, image settings
 - **Content lives in `src/data/*.json`.** A new pledge class or exec board means
   editing one JSON file, not a page. See [docs/editing-content.md](docs/editing-content.md).
 - **No personal contact info in this repo or on public pages.** No phone numbers or
-  personal emails, ever. Member and alumni directories go behind the portal login.
+  personal emails, ever. Brother-only data (members, alumni, internal links) lives in the
+  portal's Google Sheet and is read on the server after sign-in. See
+  [docs/portal-setup.md](docs/portal-setup.md).
+- **No secrets in the repo.** API keys and passwords go in Vercel's environment variables
+  (and `.env.local` on your laptop, which Git ignores).
 - **No large files.** Videos go on YouTube (unlisted) and get embedded. Photos should be
   under 500 KB each.
 - **No payments or ads on the site.** Vercel's free Hobby plan only allows
