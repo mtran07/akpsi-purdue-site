@@ -32,7 +32,7 @@ redirects, brand colors and fonts, editing guide.
 | # | Task | Size | Owner |
 | --- | --- | --- | --- |
 | 2.1 | **Media:** Instagram posts live in `src/data/instagram.json` (5 in). Add a rush video section if the chapter makes one | S | |
-| 2.2 | **Contact:** build the form in Google Forms or Tally under the chapter account; put its embed URL in `site.json` | S | |
+| 2.2 | **Contact:** ~~build a form~~ Done: native form, emails `CONTACT_EMAIL` via the Apps Script. Set that property | S | Melissa |
 | 2.3 | **Home:** add a hero photo and the official chapter logo | M | |
 | 2.4 | **Social previews:** add an Open Graph image so links shared on Instagram and iMessage show a card | S | |
 | 2.5 | **Accessibility pass:** keyboard-only navigation, color contrast, alt text on every image | M | |
@@ -62,6 +62,7 @@ coffee-chat drafts. What's left is setup and moving people over. Follow
 | 4.5 | Retire the Netlify directory and its old Apps Script deployment | S | Melissa |
 | 4.6 | ~~Add map and insights views to the directory, like the old site had~~ Done: cards, list, map, insights, Near Me | M | |
 | 4.7 | Update the live Apps Script to the latest `portal.gs` (adds Sector, Prev. Companies and sign-in requests) and deploy a new version | S | Melissa |
+| 4.12 | Set `POINTS_SHEET_ID` (and `POINTS_TAB` if the points tab isn't first) for My points | S | Melissa |
 | 4.11 | Set `SECRETARY_EMAIL` in the Apps Script for the excusal form; tell brothers about My profile | S | Melissa |
 | 4.10 | Set `CALENDAR_ID` in the Apps Script so the portal shows chapter events; share the calendar with brothers so they can subscribe | S | Melissa |
 | 4.9 | Add a **Roster** tab (import `roster-tab-full.csv`; fill in Pledge Class, Class Year, Major, Phone), optionally set `NOTIFY_EMAIL`, and approve `Pending` rows as they come in | S | Melissa / VP Membership |

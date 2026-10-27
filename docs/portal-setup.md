@@ -90,6 +90,22 @@ attached if they added one, and logged on an **Excusals** tab (created automatic
 with a Decision column for the secretary). Emails are sent from the Google account that
 owns the Apps Script, so consider moving the script to the chapter tech account.
 
+**My points** (portal): each brother sees only their own row of the secretary's points
+table. Set script properties `POINTS_SHEET_ID` (the ID in the points sheet's URL) and,
+if the points aren't on its first tab, `POINTS_TAB`. The account that owns the Apps
+Script needs at least view access to that sheet. The script finds the layout by its
+labels (`Events:`, `Date:`, `Name:`, `Email:`, `Total Points:`, `Semester Goal:`,
+`Mid-Semester Goal:`), so moving columns is fine. Chapter attendance is read from cell
+colors, matched to the color key above the table (Present, Unexcused, Excused, Out of
+Chapter...): keep using exactly those key colors. Brothers are matched by Purdue email
+(from the Roster tab), then by name.
+
+**Contact form** (public, /contact): set `CONTACT_EMAIL` (falls back to `SECRETARY_EMAIL`).
+Messages are emailed there with reply-to set to the sender, and logged on a **Contact**
+tab. The sender is never emailed, so the form can't be used to spam other people.
+Spam checks: a hidden trap field, a minimum fill time, 3 messages an hour per visitor,
+and 40 a day in total.
+
 **Resources** (optional): links shown on the portal home page
 
 | Title | URL | Description | Category |
