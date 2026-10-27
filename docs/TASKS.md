@@ -31,7 +31,7 @@ redirects, brand colors and fonts, editing guide.
 
 | # | Task | Size | Owner |
 | --- | --- | --- | --- |
-| 2.1 | **Media:** embed the rush video (YouTube, unlisted). Instagram posts: add links to `src/data/instagram.json` (Brother Spotlights is in) | M | |
+| 2.1 | **Media:** Instagram posts live in `src/data/instagram.json` (5 in). Add a rush video section if the chapter makes one | S | |
 | 2.2 | **Contact:** build the form in Google Forms or Tally under the chapter account; put its embed URL in `site.json` | S | |
 | 2.3 | **Home:** add a hero photo and the official chapter logo | M | |
 | 2.4 | **Social previews:** add an Open Graph image so links shared on Instagram and iMessage show a card | S | |
