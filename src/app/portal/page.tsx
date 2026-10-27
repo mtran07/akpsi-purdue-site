@@ -30,13 +30,18 @@ export default function PortalPage(props: PageProps<"/portal">) {
 async function PortalContent({ searchParams }: { searchParams: PageProps<"/portal">["searchParams"] }) {
   // Always render per request: sign-in state must never be prerendered or prefetched.
   await connection();
-  const { error } = await searchParams;
+  const { error, access } = await searchParams;
   if (!isPortalConfigured()) return <NotConfiguredPanel />;
 
   const viewer = await getViewer();
 
   if (viewer.status === "signed-out") {
-    return <SignInPanel error={typeof error === "string" ? error : undefined} />;
+    return (
+      <SignInPanel
+        error={typeof error === "string" ? error : undefined}
+        access={typeof access === "string" ? access : undefined}
+      />
+    );
   }
   if (viewer.status === "not-member") return <NotMemberPanel email={viewer.email} />;
 

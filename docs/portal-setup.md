@@ -41,6 +41,23 @@ headers, spelled as below (capitalization doesn't matter):
   add `'alumni'` to `ALLOWED_STATUSES` at the top of the Apps Script, mark them `Alumni`, and
   list a personal Gmail.
 - The VP of Membership or Secretary should own this tab, not Tech.
+- Add a **Note** column if you like; sign-in requests (below) explain themselves there.
+
+**Roster** (optional): names of current brothers, one per row under a `Name` header.
+No emails needed. Used only for sign-in requests:
+
+- When someone signs in with a Google account that isn't on Members, the site compares
+  their Google name to the names on **Roster** and **Members**. If it matches
+  (nicknames and "Max"/"Maxwell" count, word order doesn't matter), their email is
+  added to **Members** with Status `Pending` and a note saying who they matched.
+- **Pending does not get in.** Change it to `Active` to approve; they can sign in a
+  minute later. If it isn't really them, delete the row or set it to `Inactive` (an
+  `Inactive` email can't file another request).
+- No match means nothing is written, and they're told to try their personal Gmail.
+- To get an email for each request, set the script property `NOTIFY_EMAIL` (comma-
+  separate several addresses). The first deploy after adding this asks you to allow
+  the script to send email.
+- New pledge class: add their names to **Roster**. They sign in, you approve.
 
 **Resources** (optional): links shown on the portal home page
 
@@ -159,6 +176,8 @@ anyone can read both with View Source. Once the portal works:
 | To… | Do this |
 | --- | --- |
 | Add or remove a brother | Edit the **Members** tab (Status `Active` or anything else). No code or redeploy needed |
+| Approve a sign-in request | Change its Status from `Pending` to `Active` on **Members** |
+| Let a new pledge class request access | Add their names to the **Roster** tab |
 | Add a resource link | Add a row to the **Resources** tab |
 | Fix an alum's info | Edit the alumni tab. Changes show on the next page load |
 | Recognize a new alumni column | Edit `ALUMNI_FIELDS` in the Apps Script, deploy a new version |

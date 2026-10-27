@@ -18,10 +18,23 @@
  *   ?action=alumni     alumni directory rows (phone numbers are never returned)
  *   ?action=resources  brother-only links from the "Resources" tab
  *   ?action=columns    setup check: which alumni columns were recognized
+ *
+ * And one POST, sent by the website when someone signs in with a Google
+ * account that isn't on the Members tab (body: JSON { key, action: "request",
+ * email, name }):
+ *   action=request     if their Google name matches a brother on the Roster
+ *                      or Members tab, adds their email to Members as
+ *                      "Pending". Changing Pending to Active lets them in.
+ *
+ * Optional script property:
+ *   NOTIFY_EMAIL       comma-separated addresses to email when a request comes in
  */
 
 var MEMBERS_TAB = 'Members';
 var RESOURCES_TAB = 'Resources';
+var ROSTER_TAB = 'Roster';
+var PENDING_STATUS = 'Pending';
+var MAX_PENDING = 60; // stop adding requests if this many are already waiting
 
 /**
  * Which alumni sheet columns feed which directory field. Header names are
@@ -77,7 +90,148 @@ function doGet(e) {
   }
 }
 
+function doPost(e) {
+  var body;
+  try {
+    body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+  } catch (err) {
+    return json_({ ok: false, error: 'bad request' });
+  }
+  var props = PropertiesService.getScriptProperties();
+  var expectedKey = props.getProperty('PORTAL_KEY');
+  if (!expectedKey || !safeEqual_(String(body.key || ''), expectedKey)) {
+    return json_({ ok: false, error: 'unauthorized' });
+  }
+  if (body.action !== 'request') return json_({ ok: false, error: 'unknown action' });
+
+  var email = String(body.email || '').trim().toLowerCase();
+  var name = String(body.name || '').replace(/\s+/g, ' ').trim().slice(0, 100);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200) {
+    return json_({ ok: false, error: 'bad email' });
+  }
+
+  // One request at a time, so two quick sign-ins can't add the same row twice.
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return json_({ ok: false, error: 'busy, try again' });
+  try {
+    var spreadsheet = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+    var membersSheet = spreadsheet.getSheetByName(MEMBERS_TAB);
+    if (!membersSheet) throw new Error('No tab named "' + MEMBERS_TAB + '"');
+    var members = readTable_(spreadsheet, MEMBERS_TAB);
+    var roster = spreadsheet.getSheetByName(ROSTER_TAB) ? readTable_(spreadsheet, ROSTER_TAB) : null;
+
+    var decision = decideRequest_(members, roster, email, name);
+    if (decision.result === 'pending' && decision.newRow) {
+      membersSheet.appendRow(buildMemberRow_(members.headers, email, name, decision.matched));
+      notify_(props.getProperty('NOTIFY_EMAIL'), email, name, decision.matched, spreadsheet.getUrl());
+    }
+    return json_({ ok: true, data: { result: decision.result } });
+  } catch (err) {
+    return json_({ ok: false, error: String(err && err.message ? err.message : err) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 /* ---------------- Readers (pure functions, no Google APIs) ---------------- */
+
+/**
+ * What to do with a sign-in from an email that isn't an allowed member.
+ * Returns { result: 'pending' | 'no-match' | 'blocked', newRow?, matched? }.
+ *   pending   their name matches a brother (newRow: add them as Pending),
+ *             or they already have a Pending row
+ *   blocked   their email is on the Members tab with a status like Inactive
+ *   no-match  nobody on the roster has that name; nothing is written
+ */
+function decideRequest_(members, roster, email, googleName) {
+  var emailCol = findColumns_(members.headers, ['email', 'emailaddress', 'googleemail'])[0];
+  var nameCol = findColumns_(members.headers, ['name', 'fullname'])[0];
+  var statusCol = findColumns_(members.headers, ['status', 'active'])[0];
+  if (emailCol === undefined) throw new Error('Members tab needs an "Email" column');
+
+  var pendingCount = 0;
+  var names = [];
+  for (var i = 0; i < members.rows.length; i++) {
+    var row = members.rows[i];
+    var status = statusCol === undefined ? '' : String(row[statusCol] || '').trim().toLowerCase();
+    if (status === PENDING_STATUS.toLowerCase()) pendingCount++;
+    if (String(row[emailCol] || '').trim().toLowerCase() === email) {
+      if (status === PENDING_STATUS.toLowerCase()) return { result: 'pending', newRow: false };
+      // Allowed statuses never get here (the website lets them straight in),
+      // so this row was deliberately switched off.
+      return { result: ALLOWED_STATUSES.indexOf(status) === -1 ? 'blocked' : 'pending', newRow: false };
+    }
+    // Pending rows are requests, not roster entries, so they can't vouch for anyone.
+    if (nameCol !== undefined && status !== PENDING_STATUS.toLowerCase() && row[nameCol]) names.push(row[nameCol]);
+  }
+  if (roster) {
+    var rosterNameCol = findColumns_(roster.headers, ['name', 'fullname', 'brother'])[0];
+    if (rosterNameCol !== undefined) {
+      roster.rows.forEach(function (row) { if (row[rosterNameCol]) names.push(row[rosterNameCol]); });
+    }
+  }
+
+  var matched = '';
+  for (var j = 0; j < names.length && !matched; j++) {
+    if (namesMatch_(googleName, names[j])) matched = String(names[j]).trim();
+  }
+  if (!matched) return { result: 'no-match' };
+  if (pendingCount >= MAX_PENDING) return { result: 'pending', newRow: false };
+  return { result: 'pending', newRow: true, matched: matched };
+}
+
+/** A Members row for a new request, in whatever column order the tab uses. */
+function buildMemberRow_(headers, email, googleName, matched) {
+  var normalized = headers.map(normalizeHeader_);
+  var note = 'Sign-in request ' + Utilities.formatDate(new Date(), 'America/Indianapolis', 'yyyy-MM-dd') +
+    '. Google name "' + googleName + '" matched roster "' + matched + '". Set Status to Active to approve.';
+  var filled = { email: false, name: false, status: false, note: false };
+  return normalized.map(function (h) {
+    if (!filled.email && (h === 'email' || h === 'emailaddress' || h === 'googleemail')) { filled.email = true; return email; }
+    if (!filled.name && (h === 'name' || h === 'fullname')) { filled.name = true; return matched; }
+    if (!filled.status && (h === 'status' || h === 'active')) { filled.status = true; return PENDING_STATUS; }
+    if (!filled.note && (h === 'note' || h === 'notes')) { filled.note = true; return note; }
+    return '';
+  });
+}
+
+var NICKNAMES = {
+  alex: 'alexander', ben: 'benjamin', bill: 'william', chris: 'christopher', dan: 'daniel',
+  dave: 'david', jake: 'jacob', jim: 'james', joe: 'joseph', jon: 'jonathan', josh: 'joshua',
+  kate: 'katherine', liz: 'elizabeth', matt: 'matthew', mike: 'michael', nick: 'nicholas',
+  rob: 'robert', bob: 'robert', sam: 'samuel', steve: 'steven', tom: 'thomas', will: 'william',
+  tony: 'anthony', andy: 'andrew', zach: 'zachary', abby: 'abigail', maddie: 'madison', tim: 'timothy'
+};
+
+function nameTokens_(name) {
+  return String(name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[^a-z\s-]/g, ' ').replace(/-/g, ' ').split(/\s+/).filter(Boolean);
+}
+
+function firstNamesMatch_(a, b) {
+  if (a === b) return true;
+  if (NICKNAMES[a] === b || NICKNAMES[b] === a || (NICKNAMES[a] && NICKNAMES[a] === NICKNAMES[b])) return true;
+  var shorter = a.length < b.length ? a : b;
+  var longer = a.length < b.length ? b : a;
+  return shorter.length >= 3 && longer.indexOf(shorter) === 0; // Max / Maxwell
+}
+
+/**
+ * Loose on purpose (a human approves every match): first and last name of the
+ * roster entry must both appear in the Google name, in either order, with
+ * nicknames and shortened first names allowed. "Max Klug" matches
+ * "Maxwell Klug"; "Nguyen Giang" matches "Giang Nguyen".
+ */
+function namesMatch_(googleName, rosterName) {
+  var g = nameTokens_(googleName);
+  var r = nameTokens_(rosterName);
+  if (g.length < 2 || r.length < 2) return false;
+  var first = r[0];
+  var last = r[r.length - 1];
+  var lastIndex = g.indexOf(last);
+  if (lastIndex === -1) return false;
+  return g.some(function (token, i) { return i !== lastIndex && firstNamesMatch_(token, first); });
+}
 
 /**
  * Who may sign in, by the Members tab's Status column. Anything else
@@ -219,6 +373,22 @@ function readTable_(spreadsheet, tabName) {
   if (!sheet) throw new Error('No tab named "' + tabName + '"');
   var values = sheet.getDataRange().getDisplayValues();
   return { headers: values[0] || [], rows: values.slice(1) };
+}
+
+function notify_(recipients, email, googleName, matched, sheetUrl) {
+  if (!recipients) return;
+  try {
+    MailApp.sendEmail({
+      to: recipients,
+      subject: 'AKPsi portal: ' + matched + ' asked for access',
+      body: 'Someone signed in to the brother portal as ' + email + ' (Google name: "' + googleName + '").\n' +
+        'Their name matches "' + matched + '" on the roster, so they were added to the Members tab as Pending.\n\n' +
+        'If that\'s really them, change their Status to Active:\n' + sheetUrl + '\n\n' +
+        'If not, delete the row (or set it to Inactive so they can\'t ask again).'
+    });
+  } catch (err) {
+    // Email is a nice-to-have; the row is already in the sheet.
+  }
 }
 
 function json_(payload) {
