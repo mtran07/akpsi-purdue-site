@@ -2,7 +2,7 @@
 
 import { signIn, signOut } from "@/auth";
 import { getViewer } from "@/lib/dal";
-import { fetchAlumni } from "@/lib/portal-data";
+import { fetchAlumni, requestAccess } from "@/lib/portal-data";
 import type { Alumnus } from "@/lib/portal-types";
 
 export async function signInWithGoogle() {
@@ -134,5 +134,46 @@ Subject: <subject line>
   } catch (error) {
     console.error("Coffee chat draft failed", error);
     return { ok: false, error: "The email generator is unavailable right now." };
+  }
+}
+
+/* ---------------- Access requests ---------------- */
+
+export type AccessRequestState = {
+  status: "idle" | "pending" | "no-match" | "blocked" | "full" | "limit" | "error";
+  /** The name they typed, to refill the field after a miss. */
+  name?: string;
+};
+
+const REQUESTS_PER_HOUR = 5;
+const recentRequests = new Map<string, number[]>();
+
+/**
+ * For someone signed in with a Google account that isn't on the Members tab:
+ * if the full name they type matches the chapter roster, their email is added
+ * to Members as Pending for an officer to approve. It never grants access.
+ */
+export async function requestPortalAccess(
+  _previous: AccessRequestState,
+  formData: FormData,
+): Promise<AccessRequestState> {
+  // Server actions are public endpoints: re-check who's asking.
+  const viewer = await getViewer();
+  if (viewer.status !== "not-member") return { status: "error" };
+
+  const name = String(formData.get("name") ?? "").replace(/\s+/g, " ").trim().slice(0, 100);
+  if (name.split(" ").length < 2) return { status: "no-match", name };
+
+  const hourAgo = Date.now() - 60 * 60 * 1000;
+  const recent = (recentRequests.get(viewer.email) ?? []).filter((t) => t > hourAgo);
+  if (recent.length >= REQUESTS_PER_HOUR) return { status: "limit", name };
+  recentRequests.set(viewer.email, [...recent, Date.now()]);
+
+  try {
+    const result = await requestAccess(viewer.email, name, viewer.name);
+    return { status: result, name };
+  } catch (error) {
+    console.error("Access request failed", error);
+    return { status: "error", name };
   }
 }
