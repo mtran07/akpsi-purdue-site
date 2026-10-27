@@ -15,7 +15,7 @@ import type { Alumnus, Resource } from "@/lib/portal-types";
 
 export type Viewer =
   | { status: "signed-out" }
-  | { status: "not-member"; email: string }
+  | { status: "not-member"; email: string; name: string }
   | { status: "member"; email: string; name: string };
 
 /** Who is looking at the page. Memoized for the length of one request. */
@@ -25,7 +25,7 @@ export const getViewer = cache(async (): Promise<Viewer> => {
   if (!email) return { status: "signed-out" };
 
   const member = await findMember(email);
-  if (!member) return { status: "not-member", email };
+  if (!member) return { status: "not-member", email, name: session?.user?.name ?? "" };
 
   return {
     status: "member",

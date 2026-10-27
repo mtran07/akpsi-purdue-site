@@ -19,12 +19,12 @@
  *   ?action=resources  brother-only links from the "Resources" tab
  *   ?action=columns    setup check: which alumni columns were recognized
  *
- * And one POST, sent by the website when someone signs in with a Google
- * account that isn't on the Members tab (body: JSON { key, action: "request",
- * email, name }):
- *   action=request     if their Google name matches a brother on the Roster
- *                      or Members tab, adds their email to Members as
- *                      "Pending". Changing Pending to Active lets them in.
+ * And one POST, sent by the website when someone signed in with a Google
+ * account that isn't on the Members tab types their full name
+ * (body: JSON { key, action: "request", email, name, googleName }):
+ *   action=request     if the name matches a brother on the Roster or Members
+ *                      tab, adds their email to Members as "Pending". Changing
+ *                      Pending to Active lets them in. No match: nothing written.
  *
  * Optional script property:
  *   NOTIFY_EMAIL       comma-separated addresses to email when a request comes in
@@ -104,13 +104,17 @@ function doPost(e) {
   }
   if (body.action !== 'request') return json_({ ok: false, error: 'unknown action' });
 
-  var email = String(body.email || '').trim().toLowerCase();
-  var name = String(body.name || '').replace(/\s+/g, ' ').trim().slice(0, 100);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200) {
-    return json_({ ok: false, error: 'bad email' });
+  var clean = function (v, max) { return String(v || '').replace(/\s+/g, ' ').trim().slice(0, max); };
+  var request = {
+    email: clean(body.email, 200).toLowerCase(),
+    name: clean(body.name, 100),
+    googleName: clean(body.googleName, 100)
+  };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(request.email) || !request.name) {
+    return json_({ ok: false, error: 'bad request' });
   }
 
-  // One request at a time, so two quick sign-ins can't add the same row twice.
+  // One request at a time, so two quick submits can't add the same row twice.
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return json_({ ok: false, error: 'busy, try again' });
   try {
@@ -120,10 +124,11 @@ function doPost(e) {
     var members = readTable_(spreadsheet, MEMBERS_TAB);
     var roster = spreadsheet.getSheetByName(ROSTER_TAB) ? readTable_(spreadsheet, ROSTER_TAB) : null;
 
-    var decision = decideRequest_(members, roster, email, name);
-    if (decision.result === 'pending' && decision.newRow) {
-      membersSheet.appendRow(buildMemberRow_(members.headers, email, name, decision.matched));
-      notify_(props.getProperty('NOTIFY_EMAIL'), email, name, decision.matched, spreadsheet.getUrl());
+    var decision = decideRequest_(members, roster, request);
+    if (decision.newRow) {
+      var note = requestNote_(request, decision.matched);
+      membersSheet.appendRow(buildMemberRow_(members.headers, request, note));
+      notify_(props.getProperty('NOTIFY_EMAIL'), request, note, spreadsheet.getUrl());
     }
     return json_({ ok: true, data: { result: decision.result } });
   } catch (err) {
@@ -136,59 +141,69 @@ function doPost(e) {
 /* ---------------- Readers (pure functions, no Google APIs) ---------------- */
 
 /**
- * What to do with a sign-in from an email that isn't an allowed member.
- * Returns { result: 'pending' | 'no-match' | 'blocked', newRow?, matched? }.
- *   pending   their name matches a brother (newRow: add them as Pending),
- *             or they already have a Pending row
- *   blocked   their email is on the Members tab with a status like Inactive
+ * What to do with an access request from an email that isn't an allowed member.
+ * Returns { result, newRow, matched }:
+ *   pending   name matches the roster: added as Pending (newRow), or already Pending
  *   no-match  nobody on the roster has that name; nothing is written
+ *   blocked   their email is on the Members tab with a status like Inactive
+ *   full      MAX_PENDING requests are already waiting; nothing is written
+ * A match only files a request. A person always approves it.
  */
-function decideRequest_(members, roster, email, googleName) {
+function decideRequest_(members, roster, request) {
   var emailCol = findColumns_(members.headers, ['email', 'emailaddress', 'googleemail'])[0];
   var nameCol = findColumns_(members.headers, ['name', 'fullname'])[0];
   var statusCol = findColumns_(members.headers, ['status', 'active'])[0];
   if (emailCol === undefined) throw new Error('Members tab needs an "Email" column');
+  var pending = PENDING_STATUS.toLowerCase();
 
   var pendingCount = 0;
   var names = [];
   for (var i = 0; i < members.rows.length; i++) {
     var row = members.rows[i];
     var status = statusCol === undefined ? '' : String(row[statusCol] || '').trim().toLowerCase();
-    if (status === PENDING_STATUS.toLowerCase()) pendingCount++;
-    if (String(row[emailCol] || '').trim().toLowerCase() === email) {
-      if (status === PENDING_STATUS.toLowerCase()) return { result: 'pending', newRow: false };
+    if (status === pending) pendingCount++;
+    if (String(row[emailCol] || '').trim().toLowerCase() === request.email) {
+      if (status === pending) return { result: 'pending', newRow: false };
       // Allowed statuses never get here (the website lets them straight in),
       // so this row was deliberately switched off.
       return { result: ALLOWED_STATUSES.indexOf(status) === -1 ? 'blocked' : 'pending', newRow: false };
     }
-    // Pending rows are requests, not roster entries, so they can't vouch for anyone.
-    if (nameCol !== undefined && status !== PENDING_STATUS.toLowerCase() && row[nameCol]) names.push(row[nameCol]);
+    // Pending rows are requests, not records, so they can't vouch for anyone.
+    if (status !== pending && nameCol !== undefined && row[nameCol]) names.push(String(row[nameCol]).trim());
   }
   if (roster) {
     var rosterNameCol = findColumns_(roster.headers, ['name', 'fullname', 'brother'])[0];
     if (rosterNameCol !== undefined) {
-      roster.rows.forEach(function (row) { if (row[rosterNameCol]) names.push(row[rosterNameCol]); });
+      roster.rows.forEach(function (row) { if (row[rosterNameCol]) names.push(String(row[rosterNameCol]).trim()); });
     }
   }
 
   var matched = '';
   for (var j = 0; j < names.length && !matched; j++) {
-    if (namesMatch_(googleName, names[j])) matched = String(names[j]).trim();
+    if (namesMatch_(request.name, names[j])) matched = names[j];
   }
-  if (!matched) return { result: 'no-match' };
-  if (pendingCount >= MAX_PENDING) return { result: 'pending', newRow: false };
+  if (!matched) return { result: 'no-match', newRow: false };
+  if (pendingCount >= MAX_PENDING) return { result: 'full', newRow: false };
   return { result: 'pending', newRow: true, matched: matched };
 }
 
+/** The Note for a request, for whoever approves it. */
+function requestNote_(request, matched) {
+  var note = 'Access request ' + Utilities.formatDate(new Date(), 'America/Indianapolis', 'yyyy-MM-dd') +
+    '. Typed name "' + request.name + '" matched roster "' + matched + '".';
+  if (request.googleName && request.googleName !== request.name) {
+    note += ' Google account name: "' + request.googleName + '".';
+  }
+  return note + ' Set Status to Active to approve.';
+}
+
 /** A Members row for a new request, in whatever column order the tab uses. */
-function buildMemberRow_(headers, email, googleName, matched) {
+function buildMemberRow_(headers, request, note) {
   var normalized = headers.map(normalizeHeader_);
-  var note = 'Sign-in request ' + Utilities.formatDate(new Date(), 'America/Indianapolis', 'yyyy-MM-dd') +
-    '. Google name "' + googleName + '" matched roster "' + matched + '". Set Status to Active to approve.';
   var filled = { email: false, name: false, status: false, note: false };
   return normalized.map(function (h) {
-    if (!filled.email && (h === 'email' || h === 'emailaddress' || h === 'googleemail')) { filled.email = true; return email; }
-    if (!filled.name && (h === 'name' || h === 'fullname')) { filled.name = true; return matched; }
+    if (!filled.email && (h === 'email' || h === 'emailaddress' || h === 'googleemail')) { filled.email = true; return request.email; }
+    if (!filled.name && (h === 'name' || h === 'fullname')) { filled.name = true; return request.name; }
     if (!filled.status && (h === 'status' || h === 'active')) { filled.status = true; return PENDING_STATUS; }
     if (!filled.note && (h === 'note' || h === 'notes')) { filled.note = true; return note; }
     return '';
@@ -217,8 +232,8 @@ function firstNamesMatch_(a, b) {
 }
 
 /**
- * Loose on purpose (a human approves every match): first and last name of the
- * roster entry must both appear in the Google name, in either order, with
+ * Loose on purpose (it only helps a human decide): first and last name of the
+ * roster entry must both appear in the given name, in either order, with
  * nicknames and shortened first names allowed. "Max Klug" matches
  * "Maxwell Klug"; "Nguyen Giang" matches "Giang Nguyen".
  */
@@ -375,16 +390,15 @@ function readTable_(spreadsheet, tabName) {
   return { headers: values[0] || [], rows: values.slice(1) };
 }
 
-function notify_(recipients, email, googleName, matched, sheetUrl) {
+function notify_(recipients, request, note, sheetUrl) {
   if (!recipients) return;
   try {
     MailApp.sendEmail({
       to: recipients,
-      subject: 'AKPsi portal: ' + matched + ' asked for access',
-      body: 'Someone signed in to the brother portal as ' + email + ' (Google name: "' + googleName + '").\n' +
-        'Their name matches "' + matched + '" on the roster, so they were added to the Members tab as Pending.\n\n' +
-        'If that\'s really them, change their Status to Active:\n' + sheetUrl + '\n\n' +
-        'If not, delete the row (or set it to Inactive so they can\'t ask again).'
+      subject: 'AKPsi portal: ' + request.name + ' asked for access',
+      body: request.name + ' asked for brother portal access as ' + request.email + '.\n\n' + note + '\n\n' +
+        'They were added to the Members tab as Pending. If that\'s really them, change Status to Active:\n' +
+        sheetUrl + '\n\nIf not, delete the row (or set it to Inactive so they can\'t ask again).'
     });
   } catch (err) {
     // Email is a nice-to-have; the row is already in the sheet.
