@@ -49,9 +49,11 @@ export function AlumniMap({
       if (cancelled || !containerRef.current || mapRef.current) return;
       leafletRef.current = L;
       const map = L.map(containerRef.current, { zoomControl: true, scrollWheelZoom: false }).setView([39.5, -96], 4);
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-        maxZoom: 18,
+      // OpenStreetMap's standard tiles: free, no API key. Their usage policy
+      // asks for attribution and light use, which a chapter directory is.
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
       }).addTo(map);
       layerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
