@@ -1,5 +1,5 @@
 import "server-only";
-import type { Alumnus, Member, Resource } from "@/lib/portal-types";
+import type { Alumnus, ChapterCalendar, Member, Resource } from "@/lib/portal-types";
 
 /*
   Raw access to the portal's Google Sheet, through the Apps Script web app in
@@ -10,7 +10,7 @@ import type { Alumnus, Member, Resource } from "@/lib/portal-types";
   which checks that the visitor is a signed-in member first.
 */
 
-type ScriptAction = "members" | "alumni" | "resources";
+type ScriptAction = "members" | "alumni" | "resources" | "events";
 type ScriptResponse<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export function isPortalConfigured() {
@@ -80,6 +80,33 @@ export async function findMember(email: string): Promise<Member | null> {
   return members.get(email.trim().toLowerCase()) ?? null;
 }
 
+export type AccessRequestResult = "pending" | "no-match" | "blocked";
+
+/**
+ * Called during sign-in for a Google account that isn't on the Members tab.
+ * If their Google name matches a brother on the roster, the script adds the
+ * email to Members as "Pending" for an officer to approve. Never grants access.
+ */
+export async function requestAccess(email: string, name: string): Promise<AccessRequestResult> {
+  const base = process.env.PORTAL_SCRIPT_URL;
+  const key = process.env.PORTAL_SCRIPT_KEY;
+  if (!base || !key) throw new Error("Portal data source is not configured.");
+
+  // POST so the request isn't logged as a URL; Apps Script's redirect is followed as a GET to fetch the result.
+  const res = await fetch(base, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ key, action: "request", email, name }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) throw new Error(`Portal data source responded ${res.status}.`);
+
+  const body = (await res.json()) as ScriptResponse<{ result: AccessRequestResult }>;
+  if (!body.ok) throw new Error(`Portal data source error: ${body.error}`);
+  return body.data.result;
+}
+
 /** Alumni directory rows. Fetched fresh on each request, never cached. */
 export async function fetchAlumni(): Promise<Alumnus[]> {
   return callScript<Alumnus[]>("alumni");
@@ -88,4 +115,9 @@ export async function fetchAlumni(): Promise<Alumnus[]> {
 /** Brother-only links (Drive folders, calendar, docs). Fetched fresh. */
 export async function fetchResources(): Promise<Resource[]> {
   return callScript<Resource[]>("resources");
+}
+
+/** Upcoming events from the chapter Google Calendar (next 60 days). Fetched fresh. */
+export async function fetchEvents(): Promise<ChapterCalendar> {
+  return callScript<ChapterCalendar>("events");
 }

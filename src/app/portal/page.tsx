@@ -10,7 +10,8 @@ import {
   SignInPanel,
   SignOutButton,
 } from "@/components/portal/portal-panels";
-import { getResourcesForMember, getViewer } from "@/lib/dal";
+import { UpcomingEvents } from "@/components/portal/upcoming-events";
+import { getEventsForMember, getResourcesForMember, getViewer } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 
 export default function PortalPage(props: PageProps<"/portal">) {
@@ -30,13 +31,18 @@ export default function PortalPage(props: PageProps<"/portal">) {
 async function PortalContent({ searchParams }: { searchParams: PageProps<"/portal">["searchParams"] }) {
   // Always render per request: sign-in state must never be prerendered or prefetched.
   await connection();
-  const { error } = await searchParams;
+  const { error, access } = await searchParams;
   if (!isPortalConfigured()) return <NotConfiguredPanel />;
 
   const viewer = await getViewer();
 
   if (viewer.status === "signed-out") {
-    return <SignInPanel error={typeof error === "string" ? error : undefined} />;
+    return (
+      <SignInPanel
+        error={typeof error === "string" ? error : undefined}
+        access={typeof access === "string" ? access : undefined}
+      />
+    );
   }
   if (viewer.status === "not-member") return <NotMemberPanel email={viewer.email} />;
 
@@ -52,6 +58,15 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
       <AlumniCallout />
 
       <div>
+        <h2 className="font-display text-2xl font-bold text-navy">Upcoming events</h2>
+        <div className="mt-6">
+          <Suspense fallback={<PanelSkeleton />}>
+            <Events />
+          </Suspense>
+        </div>
+      </div>
+
+      <div>
         <h2 className="font-display text-2xl font-bold text-navy">Brother resources</h2>
         <div className="mt-6">
           <Suspense fallback={<PanelSkeleton />}>
@@ -61,6 +76,11 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
       </div>
     </div>
   );
+}
+
+async function Events() {
+  const calendar = await getEventsForMember();
+  return <UpcomingEvents calendar={calendar} />;
 }
 
 async function Resources() {

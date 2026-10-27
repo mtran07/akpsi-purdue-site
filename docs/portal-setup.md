@@ -41,6 +41,23 @@ headers, spelled as below (capitalization doesn't matter):
   add `'alumni'` to `ALLOWED_STATUSES` at the top of the Apps Script, mark them `Alumni`, and
   list a personal Gmail.
 - The VP of Membership or Secretary should own this tab, not Tech.
+- Add a **Note** column if you like; sign-in requests (below) explain themselves there.
+
+**Roster** (optional): names of current brothers, one per row under a `Name` header.
+No emails needed. Used only for sign-in requests:
+
+- When someone signs in with a Google account that isn't on Members, the site compares
+  their Google name to the names on **Roster** and **Members**. If it matches
+  (nicknames and "Max"/"Maxwell" count, word order doesn't matter), their email is
+  added to **Members** with Status `Pending` and a note saying who they matched.
+- **Pending does not get in.** Change it to `Active` to approve; they can sign in a
+  minute later. If it isn't really them, delete the row or set it to `Inactive` (an
+  `Inactive` email can't file another request).
+- No match means nothing is written, and they're told to try their personal Gmail.
+- To get an email for each request, set the script property `NOTIFY_EMAIL` (comma-
+  separate several addresses). The first deploy after adding this asks you to allow
+  the script to send email.
+- New pledge class: add their names to **Roster**. They sign in, you approve.
 
 **Resources** (optional): links shown on the portal home page
 
@@ -51,6 +68,20 @@ headers, spelled as below (capitalization doesn't matter):
 - Only `https://` links are shown. Category groups the links into sections.
 - Linking a Drive file doesn't share it. Make sure the file itself is shared with the
   chapter, too.
+
+**Chapter calendar** (optional): upcoming events on the portal home page
+
+- In the Apps Script, add the script property `CALENDAR_ID`. Find it in Google Calendar:
+  the calendar's ⋮ → Settings and sharing → Integrate calendar → Calendar ID (ends in
+  `@group.calendar.google.com`).
+- The Google account that owns the Apps Script must be able to see that calendar. The
+  calendar does **not** need to be public: the script reads it, and brothers only see
+  the events after signing in.
+- The portal shows the next 60 days (up to 30 events), with times in Eastern time.
+- The **Add to my Google Calendar** button only works for brothers the calendar is
+  shared with. To let every brother subscribe, share it with them in Settings and
+  sharing → Share with specific people (see all event details), or make it public.
+- The first deploy after setting this asks you to allow the script to read your calendars.
 
 **Alumni tab**: leave it as it is (currently `Sheet4`). The script recognizes the
 current headers (First Name, Last Name, LinkedIn, Graduation Year, Major, Current
@@ -159,6 +190,8 @@ anyone can read both with View Source. Once the portal works:
 | To… | Do this |
 | --- | --- |
 | Add or remove a brother | Edit the **Members** tab (Status `Active` or anything else). No code or redeploy needed |
+| Approve a sign-in request | Change its Status from `Pending` to `Active` on **Members** |
+| Let a new pledge class request access | Add their names to the **Roster** tab |
 | Add a resource link | Add a row to the **Resources** tab |
 | Fix an alum's info | Edit the alumni tab. Changes show on the next page load |
 | Recognize a new alumni column | Edit `ALUMNI_FIELDS` in the Apps Script, deploy a new version |
