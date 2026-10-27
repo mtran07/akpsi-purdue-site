@@ -107,17 +107,45 @@ export async function requestAccess(email: string, name: string, googleName: str
   return body.data.result;
 }
 
-/** Alumni directory rows. Fetched fresh on each request, never cached. */
+/*
+  Alumni, resources and events change rarely, and each Apps Script call takes
+  a second or more, so they're kept in this server's memory for a few minutes.
+  Same rules as the member list: private to this module (never "use cache"),
+  and every caller goes through dal.ts, which checks membership first.
+  An edit to the sheet or calendar shows up within CONTENT_TTL_MS.
+*/
+const CONTENT_TTL_MS = 5 * 60_000;
+const contentCache = new Map<ScriptAction, { at: number; data: unknown }>();
+const contentRefresh = new Map<ScriptAction, Promise<unknown>>();
+
+function cachedScript<T>(action: ScriptAction): Promise<T> {
+  const hit = contentCache.get(action);
+  if (hit && Date.now() - hit.at < CONTENT_TTL_MS) return Promise.resolve(hit.data as T);
+
+  let refresh = contentRefresh.get(action) as Promise<T> | undefined;
+  if (!refresh) {
+    refresh = callScript<T>(action)
+      .then((data) => {
+        contentCache.set(action, { at: Date.now(), data });
+        return data;
+      })
+      .finally(() => contentRefresh.delete(action));
+    contentRefresh.set(action, refresh);
+  }
+  return refresh;
+}
+
+/** Alumni directory rows. Cached for a few minutes. Callers must not mutate them. */
 export async function fetchAlumni(): Promise<Alumnus[]> {
-  return callScript<Alumnus[]>("alumni");
+  return cachedScript<Alumnus[]>("alumni");
 }
 
-/** Brother-only links (Drive folders, calendar, docs). Fetched fresh. */
+/** Brother-only links (Drive folders, calendar, docs). Cached for a few minutes. */
 export async function fetchResources(): Promise<Resource[]> {
-  return callScript<Resource[]>("resources");
+  return cachedScript<Resource[]>("resources");
 }
 
-/** Upcoming events from the chapter Google Calendar (next 60 days). Fetched fresh. */
+/** Upcoming events from the chapter Google Calendar (next 60 days). Cached for a few minutes. */
 export async function fetchEvents(): Promise<ChapterCalendar> {
-  return callScript<ChapterCalendar>("events");
+  return cachedScript<ChapterCalendar>("events");
 }

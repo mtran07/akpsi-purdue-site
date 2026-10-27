@@ -42,9 +42,15 @@ export async function requireMember() {
 }
 
 export async function getAlumniForMember(): Promise<Alumnus[]> {
+  // Start loading the directory while membership is checked, but only hand
+  // it over once the check passes. The catch stops an unhandled rejection if
+  // the check redirects first.
+  const pending = fetchAlumni();
+  pending.catch(() => {});
   await requireMember();
-  const alumni = await fetchAlumni();
-  return alumni.sort((a, b) => a.name.localeCompare(b.name));
+  const alumni = await pending;
+  // Copy before sorting: the array is shared with the cache.
+  return [...alumni].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
