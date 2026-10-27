@@ -84,6 +84,16 @@ body {
 ::view-transition-new(site-header) {
   animation: none;
 }
+/* Phones: a quicker cross-fade, so taps feel instant. */
+@media (max-width: 767px) {
+  ::view-transition-old(.page-out) {
+    animation-duration: 80ms;
+  }
+  ::view-transition-new(.page-in) {
+    animation-duration: 160ms;
+    animation-delay: 0ms;
+  }
+}
 @keyframes vt-fade-out {
   to {
     opacity: 0;
@@ -103,7 +113,8 @@ body {
     .reveal {
       animation: reveal-up linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 35%;
+      /* Done early, so fast scrolling never shows a half-faded section. */
+      animation-range: entry 0% entry 20%;
     }
   }
 }
@@ -111,7 +122,7 @@ body {
 @keyframes reveal-up {
   from {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;

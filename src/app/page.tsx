@@ -16,7 +16,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-navy text-white">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl"
+          className="pointer-events-none absolute -right-24 -top-24 h-[36rem] w-[36rem] bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--color-gold)_14%,transparent),transparent)]"
         />
         <div className="relative mx-auto max-w-6xl px-4 pb-28 pt-20 sm:px-6 sm:pb-36 sm:pt-28">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
