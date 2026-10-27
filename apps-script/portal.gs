@@ -40,7 +40,9 @@ var ALUMNI_FIELDS = {
   position: ['primarybusinessposition', 'position', 'jobtitle', 'title', 'currentposition', 'role'],
   company: ['primarybusinessorganization', 'company', 'organization', 'employer', 'currentcompany'],
   location: ['companylocation', 'location', 'city', 'currentlocation'],
-  linkedin: ['linkedin', 'linkedinurl', 'linkedinprofile', 'linkedinprofileurl']
+  linkedin: ['linkedin', 'linkedinurl', 'linkedinprofile', 'linkedinprofileurl'],
+  sector: ['sector', 'industry'],
+  prevCompanies: ['prevcompanies', 'previouscompanies', 'othercompaniesworkedfor', 'othercompanies', 'pastcompanies']
 };
 
 function doGet(e) {
@@ -62,6 +64,8 @@ function doGet(e) {
       case 'alumni':
         return json_({ ok: true, data: readAlumni_(readTable_(spreadsheet, alumniTab)) });
       case 'resources':
+        // The Resources tab is optional: no tab means no links yet.
+        if (!spreadsheet.getSheetByName(RESOURCES_TAB)) return json_({ ok: true, data: [] });
         return json_({ ok: true, data: readResources_(readTable_(spreadsheet, RESOURCES_TAB)) });
       case 'columns':
         return json_({ ok: true, data: describeColumns_(readTable_(spreadsheet, alumniTab).headers) });
@@ -120,7 +124,7 @@ function readAlumni_(table) {
     if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) record.email = email;
     var linkedin = normalizeLinkedIn_(get('linkedin'));
     if (linkedin) record.linkedin = linkedin;
-    ['gradYear', 'major', 'position', 'company', 'location'].forEach(function (field) {
+    ['gradYear', 'major', 'position', 'company', 'location', 'sector', 'prevCompanies'].forEach(function (field) {
       var value = get(field);
       if (value && !/^(n\/?a|none|-)$/i.test(value)) record[field] = value;
     });

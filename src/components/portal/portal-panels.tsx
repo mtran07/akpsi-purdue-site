@@ -76,7 +76,10 @@ export function NotConfiguredPanel() {
   );
 }
 
-export function ResourceList({ resources }: { resources: Resource[] }) {
+export function ResourceList({ resources }: { resources: Resource[] | null }) {
+  if (resources === null) {
+    return <p className="text-muted">Resources couldn&apos;t load right now. Try again in a minute.</p>;
+  }
   if (resources.length === 0) {
     return <p className="text-muted">No resources posted yet.</p>;
   }

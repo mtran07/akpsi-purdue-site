@@ -12,6 +12,9 @@ export type Alumnus = {
   company?: string;
   location?: string;
   linkedin?: string;
+  sector?: string;
+  /** Comma-separated list, as typed in the sheet. */
+  prevCompanies?: string;
 };
 
 export type Member = {

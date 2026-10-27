@@ -60,7 +60,9 @@ coffee-chat drafts. What's left is setup and moving people over. Follow
 | 4.3 | Create the Google sign-in client and set the Vercel environment variables | S | Melissa |
 | 4.4 | Have 3–4 brothers test sign-in and the directory on the `.vercel.app` link | S | |
 | 4.5 | Retire the Netlify directory and its old Apps Script deployment | S | Melissa |
-| 4.6 | Add map and insights views to the directory, like the old site had | M | |
+| 4.6 | ~~Add map and insights views to the directory, like the old site had~~ Done: cards, list, map, insights, Near Me | M | |
+| 4.7 | Update the live Apps Script to the latest `portal.gs` (adds Sector and Prev. Companies) | S | Melissa |
+| 4.8 | Add map coordinates for any common alumni cities the map reports as unrecognized | S | |
 
 ## Spring 2027 (after launch)
 

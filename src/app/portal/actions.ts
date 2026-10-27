@@ -34,7 +34,13 @@ function underLimit(email: string) {
   return true;
 }
 
-export async function draftCoffeeChat(alumnusId: string, note: string): Promise<DraftResult> {
+export type SenderDetails = { gradYear?: string; major?: string };
+
+export async function draftCoffeeChat(
+  alumnusId: string,
+  note: string,
+  sender: SenderDetails = {},
+): Promise<DraftResult> {
   // Server actions are public endpoints, so check membership here too.
   const viewer = await getViewer();
   if (viewer.status !== "member") return { ok: false, error: "Please sign in again." };
@@ -46,6 +52,9 @@ export async function draftCoffeeChat(alumnusId: string, note: string): Promise<
     return { ok: false, error: "Unknown alum." };
   }
   const extra = typeof note === "string" ? note.trim().slice(0, 400) : "";
+  const clean = (v: unknown) => (typeof v === "string" ? v.trim().slice(0, 60) : "");
+  const senderGrad = clean(sender?.gradYear);
+  const senderMajor = clean(sender?.major);
 
   if (!underLimit(viewer.email)) {
     return { ok: false, error: `You've drafted ${DRAFTS_PER_HOUR} emails this hour. Try again later.` };
@@ -69,13 +78,22 @@ export async function draftCoffeeChat(alumnusId: string, note: string): Promise<
     alum.location && `Location: ${alum.location}`,
     alum.major && `Major at Purdue: ${alum.major}`,
     alum.gradYear && `Graduated: ${alum.gradYear}`,
+    alum.sector && `Sector: ${alum.sector}`,
   ]
     .filter(Boolean)
     .join("\n");
 
+  const senderLine = [
+    `${viewer.name}, a current brother`,
+    senderGrad && `graduating ${senderGrad}`,
+    senderMajor && `majoring in ${senderMajor}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   const prompt = `Write a short, warm coffee-chat request email from a current Purdue student in Alpha Kappa Psi (Pi Omega chapter) to an alumnus of the chapter.
 
-Sender: ${viewer.name}, a current brother.
+Sender: ${senderLine}.
 ${extra ? `What the sender wants to talk about: ${extra}\n` : ""}
 Alumnus:
 ${about}
