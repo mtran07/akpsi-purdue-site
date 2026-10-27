@@ -271,6 +271,33 @@ function StatsLine({ shown, total }: { shown: AlumRow[]; total: number }) {
 
 /* ---------------- Cards ---------------- */
 
+// Drawing hundreds of cards at once freezes phones for a second or two, so
+// cards and list rows render a page at a time with a "Show more" button.
+const PAGE_SIZE = 60;
+
+function ShowMore({ shown, total, onMore }: { shown: number; total: number; onMore: () => void }) {
+  if (shown >= total) return null;
+  return (
+    <div className="mt-8 text-center">
+      <button
+        type="button"
+        onClick={onMore}
+        className="rounded-full border border-navy px-6 py-2.5 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white"
+      >
+        Show more ({total - shown} left)
+      </button>
+    </div>
+  );
+}
+
+/** A page limit that resets to the first page whenever the list changes (new filters). */
+function usePageLimit(list: unknown, size: number) {
+  const [state, setState] = useState({ list, limit: size });
+  if (state.list !== list) setState({ list, limit: size });
+  const limit = state.list === list ? state.limit : size;
+  return [limit, () => setState((s) => ({ ...s, limit: s.limit + size }))] as const;
+}
+
 function CardsView({
   alumni,
   grouped,
@@ -280,9 +307,18 @@ function CardsView({
   grouped: boolean;
   onCoffeeChat?: (alum: AlumRow) => void;
 }) {
+  const [limit, showMore] = usePageLimit(alumni, PAGE_SIZE);
   if (alumni.length === 0) return <p className="py-16 text-center text-muted">No alumni match those filters.</p>;
+  const more = <ShowMore shown={Math.min(limit, alumni.length)} total={alumni.length} onMore={showMore} />;
 
-  if (!grouped) return <CardGrid alumni={alumni} onCoffeeChat={onCoffeeChat} />;
+  if (!grouped) {
+    return (
+      <>
+        <CardGrid alumni={alumni.slice(0, limit)} onCoffeeChat={onCoffeeChat} />
+        {more}
+      </>
+    );
+  }
 
   const groups = new Map<string, AlumRow[]>();
   for (const a of alumni) {
@@ -292,19 +328,28 @@ function CardsView({
   const ordered = [...groups].sort(
     ([a, aa], [b, bb]) => stateRank(a) - stateRank(b) || bb.length - aa.length || a.localeCompare(b),
   );
+  // Fill state groups in order until the page is full.
+  let left = limit;
+  const visible: [string, AlumRow[], number][] = [];
+  for (const [stateName, members] of ordered) {
+    if (left <= 0) break;
+    visible.push([stateName, members.slice(0, left), members.length]);
+    left -= members.length;
+  }
 
   return (
     <div className="space-y-10">
-      {ordered.map(([stateName, members]) => (
+      {visible.map(([stateName, members, count]) => (
         <section key={stateName} aria-labelledby={`state-${stateName}`}>
           <h3 id={`state-${stateName}`} className="font-display text-xl font-bold text-navy">
-            {stateName} <span className="font-sans text-sm font-normal text-muted">({members.length})</span>
+            {stateName} <span className="font-sans text-sm font-normal text-muted">({count})</span>
           </h3>
           <div className="mt-4">
             <CardGrid alumni={members} onCoffeeChat={onCoffeeChat} />
           </div>
         </section>
       ))}
+      {more}
     </div>
   );
 }
@@ -324,7 +369,7 @@ function AlumCard({ alum: a, onCoffeeChat }: { alum: AlumRow; onCoffeeChat?: (al
   const hasCareer = Boolean(a.company || a.prevList.length);
 
   return (
-    <li className="flex flex-col rounded-xl border border-line bg-white p-5">
+    <li className="flex flex-col rounded-xl border border-line bg-white p-5 [contain-intrinsic-size:auto_220px] [content-visibility:auto]">
       <div className="flex gap-3">
         <div
           aria-hidden
@@ -446,6 +491,7 @@ function sortValue(a: AlumRow, key: SortKey) {
 function ListView({ alumni }: { alumni: AlumRow[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [dir, setDir] = useState(1);
+  const [limit, showMore] = usePageLimit(alumni, PAGE_SIZE * 2);
 
   const sorted = useMemo(
     () =>
@@ -462,6 +508,7 @@ function ListView({ alumni }: { alumni: AlumRow[] }) {
   if (alumni.length === 0) return <p className="py-16 text-center text-muted">No alumni match those filters.</p>;
 
   return (
+    <>
     <div className="overflow-x-auto rounded-xl border border-line bg-white">
       <table className="w-full min-w-[720px] text-left text-sm">
         <thead className="border-b border-line bg-paper-alt text-xs uppercase tracking-wider text-muted">
@@ -495,7 +542,7 @@ function ListView({ alumni }: { alumni: AlumRow[] }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
-          {sorted.map((a) => (
+          {sorted.slice(0, limit).map((a) => (
             <tr key={a.id} className="hover:bg-paper-alt/60">
               <td className="px-4 py-3 font-medium text-ink">{a.name}</td>
               <td className="px-4 py-3 text-muted">{a.location || "—"}</td>
@@ -520,6 +567,8 @@ function ListView({ alumni }: { alumni: AlumRow[] }) {
         </tbody>
       </table>
     </div>
+    <ShowMore shown={Math.min(limit, sorted.length)} total={sorted.length} onMore={showMore} />
+    </>
   );
 }
 

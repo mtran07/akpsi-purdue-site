@@ -36,7 +36,8 @@ headers, spelled as below (capitalization doesn't matter):
 - One row per brother. Use the Google account they'll sign in with.
 - **Only `Active` (or a blank Status) gets in.** Any other value (`Inactive`, `Graduated`,
   `Suspended`, a typo) locks that person out, as does deleting the row. Changes take effect
-  within a minute, even if they're signed in.
+  within 5 minutes, even if they're signed in (the portal re-checks the Members
+  tab every 5 minutes instead of on every click, which keeps it fast).
 - Purdue emails stop working after graduation. If graduated brothers should keep access,
   add `'alumni'` to `ALLOWED_STATUSES` at the top of the Apps Script, mark them `Alumni`, and
   list a personal Gmail.
@@ -70,7 +71,7 @@ Access requests use the names on this tab:
   account name. They're told the request was sent.
 - No match means nothing is written; they're asked to check the spelling.
 - **Pending does not get in.** Change it to `Active` to approve; they can refresh the
-  portal a minute later. If it isn't really them, delete the row or set it to `Inactive`
+  portal about a minute later. If it isn't really them, delete the row or set it to `Inactive`
   (an `Inactive` email can't file another request).
 - To get an email for each request, set the script property `NOTIFY_EMAIL` (comma-
   separate several addresses). The first deploy after adding this asks you to allow
@@ -231,6 +232,21 @@ anyone can read both with View Source. Once the portal works:
 4. Keep the `akpsi-purdue-alumni` repo archived for reference, or delete it.
 
 ---
+
+## Speed
+
+Every call to the Apps Script takes a second or more, so the portal avoids making them
+on each click:
+
+- **Membership** is stored in the signed session cookie and re-checked every 5 minutes
+  (30 seconds for someone not yet approved). `src/proxy.ts` refreshes it.
+- **Directory data** (alumni, brothers, resources, calendar) is kept in server memory for
+  5 minutes; **My points / My profile** for 2 minutes (a profile save updates it at once).
+- **Opening the portal home** quietly preloads the other pages' data in the background.
+- **The Apps Script** caches its reads of the points sheet and Roster tab for 2 minutes.
+- The alumni directory draws 60 cards at a time (**Show more** for the rest).
+
+So a change in the sheets can take up to about 5 minutes to show in the portal.
 
 ## Changing things later
 

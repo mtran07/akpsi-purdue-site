@@ -219,6 +219,7 @@ function handleProfile_(body, props) {
         updates.values.personalEmail = email;
       }
       writeRow_(sheet, table, index, updates.values);
+      CacheService.getScriptCache().remove('roster-table');
       table = readTable_(spreadsheet, ROSTER_TAB);
     }
     var profile = readBrothers_({ headers: table.headers, rows: [table.rows[index]] }, true)[0] || {};
@@ -385,9 +386,11 @@ function handlePoints_(body, props) {
   // Emails and names this brother might appear under: their sign-in, plus their Roster row.
   var emails = [email];
   var names = [name];
-  var portal = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
-  if (portal.getSheetByName(ROSTER_TAB)) {
-    var roster = readTable_(portal, ROSTER_TAB);
+  var roster = cached_('roster-table', 120, function () {
+    var portal = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+    return portal.getSheetByName(ROSTER_TAB) ? readTable_(portal, ROSTER_TAB) : null;
+  });
+  if (roster) {
     var index = findRosterRow_(roster, email, name);
     if (index >= 0) {
       var row = roster.rows[index];
@@ -397,14 +400,17 @@ function handlePoints_(body, props) {
     }
   }
 
-  var book = SpreadsheetApp.openById(sheetId);
-  var tab = props.getProperty('POINTS_TAB');
-  var sheet = tab ? book.getSheetByName(tab) : book.getSheets()[0];
-  if (!sheet) throw new Error('No points tab named "' + tab + '"');
-  var range = sheet.getDataRange();
-  var result = readPoints_(range.getDisplayValues(), range.getBackgrounds(), emails.filter(Boolean), names.filter(Boolean));
+  var grid = cached_('points-grid', 120, function () {
+    var book = SpreadsheetApp.openById(sheetId);
+    var tab = props.getProperty('POINTS_TAB');
+    var sheet = tab ? book.getSheetByName(tab) : book.getSheets()[0];
+    if (!sheet) throw new Error('No points tab named "' + tab + '"');
+    var range = sheet.getDataRange();
+    return { values: range.getDisplayValues(), colors: range.getBackgrounds(), name: book.getName() };
+  });
+  var result = readPoints_(grid.values, grid.colors, emails.filter(Boolean), names.filter(Boolean));
   result.configured = true;
-  result.sheetName = book.getName();
+  result.sheetName = grid.name;
   return json_({ ok: true, data: result });
 }
 
@@ -931,6 +937,21 @@ function notify_(recipients, request, note, sheetUrl) {
   } catch (err) {
     // Email is a nice-to-have; the row is already in the sheet.
   }
+}
+
+/**
+ * Small read-through cache (Google's script cache) for sheet reads that are
+ * slow to open but fine to be a minute or two old. Values over ~95 KB
+ * (the cache's per-item limit) are just not cached.
+ */
+function cached_(key, seconds, load) {
+  var cache = CacheService.getScriptCache();
+  var hit = cache.get(key);
+  if (hit) return JSON.parse(hit);
+  var value = load();
+  var text = JSON.stringify(value);
+  if (text.length < 95000) cache.put(key, text, seconds);
+  return value;
 }
 
 function json_(payload) {

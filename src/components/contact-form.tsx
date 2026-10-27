@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 import { sendContact, type ContactState } from "@/app/contact/actions";
 import { CONTACT_TOPICS } from "@/lib/contact-topics";
 
@@ -9,9 +9,11 @@ const inputClass =
 
 export function ContactForm() {
   const [state, formAction, isPending] = useActionState<ContactState, FormData>(sendContact, { status: "idle" });
-  const [startedAt, setStartedAt] = useState("");
-  // Set after the page loads: messages sent within seconds of that are from bots.
-  useEffect(() => setStartedAt(String(Date.now())), []);
+  // When the page finished loading: messages sent within seconds of it are from bots.
+  const startedAt = useRef(0);
+  useEffect(() => {
+    startedAt.current = Date.now();
+  }, []);
 
   if (state.status === "sent") {
     return (
@@ -27,6 +29,7 @@ export function ContactForm() {
       onSubmit={(e) => {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
+        data.set("startedAt", String(startedAt.current));
         startTransition(() => formAction(data));
       }}
       className="space-y-5 rounded-xl border border-line bg-white p-6 sm:p-8"
@@ -63,7 +66,6 @@ export function ContactForm() {
           <input name="website" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
-      <input type="hidden" name="startedAt" value={startedAt} />
 
       <div className="flex flex-wrap items-center gap-4">
         <button
