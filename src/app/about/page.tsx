@@ -18,17 +18,17 @@ export default function AboutPage() {
       />
 
       <Section title="Our fraternity">
-        <p className="max-w-3xl text-lg leading-relaxed text-muted">{about.fraternity}</p>
+        <p className="reveal max-w-3xl text-lg leading-relaxed text-muted">{about.fraternity}</p>
       </Section>
 
       <Section title="Our mission" tone="alt">
-        <p className="max-w-3xl text-lg leading-relaxed text-muted">{about.mission}</p>
+        <p className="reveal max-w-3xl text-lg leading-relaxed text-muted">{about.mission}</p>
       </Section>
 
       <Section title="Core values">
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {about.values.map((value, index) => (
-            <li key={value.name} className="rounded-xl border border-line p-6">
+            <li key={value.name} className="reveal rounded-xl border border-line bg-white p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0">
               <p className="text-xs font-semibold tracking-widest text-gold">0{index + 1}</p>
               <p className="mt-2 font-display text-xl font-bold text-navy">{value.name}</p>
               <p className="mt-2 text-muted">{value.description}</p>

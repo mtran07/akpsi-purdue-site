@@ -3,7 +3,10 @@ import site from "@/data/site.json";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-navy text-white">
+    <header
+      className="sticky top-0 z-40 border-b border-white/10 bg-navy text-white"
+      style={{ viewTransitionName: "site-header" }}
+    >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-baseline gap-2">
           <span className="font-display text-xl font-bold text-gold">{site.chapterShort}</span>

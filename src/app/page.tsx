@@ -6,6 +6,8 @@ import about from "@/data/about.json";
 import rush from "@/data/rush.json";
 import employers from "@/data/employers.json";
 import { Section } from "@/components/page-header";
+import { CountUp } from "@/components/count-up";
+import { Marquee } from "@/components/marquee";
 
 export default function HomePage() {
   return (
@@ -61,10 +63,10 @@ export default function HomePage() {
       </div>
 
       <Section title="Our mission">
-        <p className="max-w-3xl text-lg leading-relaxed text-muted">{about.mission}</p>
+        <p className="reveal max-w-3xl text-lg leading-relaxed text-muted">{about.mission}</p>
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {about.values.map((value) => (
-            <li key={value.name} className="rounded-xl border border-line p-5">
+            <li key={value.name} className="reveal rounded-xl border border-line bg-white p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0">
               <p className="font-display text-lg font-bold text-navy">{value.name}</p>
               <p className="mt-2 text-sm text-muted">{value.description}</p>
             </li>
@@ -72,21 +74,31 @@ export default function HomePage() {
         </ul>
       </Section>
 
-      <Section title={employers.heading} tone="alt">
-        <ul className="flex flex-wrap gap-3">
-          {employers.companies.map((company) => (
-            <li
-              key={company}
-              className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-ink"
-            >
-              {company}
-            </li>
+      {/* Chapter by the numbers: each counts up the first time it scrolls into view */}
+      <section className="bg-navy text-white">
+        <dl className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-4">
+          {site.stats.map((stat) => (
+            // Label first in the markup (dt before dd); flipped visually so the number sits on top.
+            <div key={stat.label} className="reveal flex flex-col-reverse justify-end">
+              <dt className="mt-2 text-sm text-white/75">{stat.label}</dt>
+              <dd className="text-4xl font-semibold tracking-tight text-gold sm:text-5xl">
+                {stat.animate === false ? (
+                  `${stat.value}${stat.suffix ?? ""}`
+                ) : (
+                  <CountUp value={stat.value} suffix={stat.suffix ?? ""} />
+                )}
+              </dd>
+            </div>
           ))}
-        </ul>
+        </dl>
+      </section>
+
+      <Section title={employers.heading} tone="alt">
+        <Marquee items={employers.companies} label="Companies where Pi Omega brothers work" />
       </Section>
 
       <section className="bg-gold-soft">
-        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-4 py-14 sm:px-6 md:flex-row md:items-center">
+        <div className="reveal mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-4 py-14 sm:px-6 md:flex-row md:items-center">
           <div>
             <h2 className="font-display text-2xl font-bold text-navy">Interested in joining our brotherhood?</h2>
             <p className="mt-2 text-muted">

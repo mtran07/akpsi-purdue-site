@@ -32,7 +32,7 @@ export function Section({
   return (
     <section id={id} className={tone === "alt" ? "bg-paper-alt" : "bg-paper"}>
       <div className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14 sm:px-6">
-        {title && <h2 className="font-display text-2xl font-bold text-navy sm:text-3xl">{title}</h2>}
+        {title && <h2 className="reveal font-display text-2xl font-bold text-navy sm:text-3xl">{title}</h2>}
         <div className={title ? "mt-8" : ""}>{children}</div>
       </div>
     </section>
