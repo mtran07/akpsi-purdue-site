@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import site from "@/data/site.json";
+import instagram from "@/data/instagram.json";
+import { InstagramEmbeds } from "@/components/instagram-embeds";
 import { PageHeader, Section } from "@/components/page-header";
 
 export const metadata: Metadata = {
@@ -19,7 +21,7 @@ export default function MediaPage() {
       {/*
         TODO (Media task in docs/TASKS.md):
         - Embed the rush video from YouTube (unlisted) in a 16:9 iframe.
-        - Embed 3–6 Instagram posts with their official embed code.
+        Instagram posts: add links to src/data/instagram.json.
         Keep video and large photos OUT of the repo; link or embed them instead.
       */}
       <Section title="Rush video">
@@ -29,7 +31,8 @@ export default function MediaPage() {
       </Section>
 
       <Section title="On Instagram" tone="alt">
-        <p className="text-muted">
+        <InstagramEmbeds posts={instagram.posts} />
+        <p className="mt-8 text-muted">
           Follow{" "}
           <a href={site.social.instagram} target="_blank" rel="noreferrer" className="font-medium text-navy underline">
             @akpsi_purdue
