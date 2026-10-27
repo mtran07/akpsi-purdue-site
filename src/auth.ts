@@ -13,7 +13,13 @@ import Google from "next-auth/providers/google";
 */
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Google],
+  providers: [
+    Google({
+      // Always show Google's account chooser, so someone who signed in with
+      // the wrong account can pick a different one after signing out.
+      authorization: { params: { prompt: "select_account" } },
+    }),
+  ],
   session: {
     strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60, // a week, then sign in again
