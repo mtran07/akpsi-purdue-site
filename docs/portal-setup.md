@@ -43,8 +43,24 @@ headers, spelled as below (capitalization doesn't matter):
 - The VP of Membership or Secretary should own this tab, not Tech.
 - Add a **Note** column if you like; sign-in requests (below) explain themselves there.
 
-**Roster** (optional but recommended): names of current brothers, one per row under a
-`Name` header. No emails needed. Used only for access requests:
+**Roster**: active brothers, one per row. It feeds three things: the public **Active
+brothers** list on the Members page, the portal's **Brother directory**, and access
+requests. Columns (only `Name` is required; leave any cell blank):
+
+| Name | Pledge Class | Class Year | Major | Position | LinkedIn | Purdue Email | Personal Email | Phone | Show on website |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Jane Doe | Beta Alpha | 2028 | Finance | VP of Finance | linkedin.com/in/janedoe | jdoe@purdue.edu | jane@gmail.com | (317) 555-0101 | |
+
+- **Public page** (anyone): name, pledge class, class year, major, position and
+  LinkedIn. **Emails and phone numbers are never sent to it.** Put `No` under
+  Show on website to leave someone off the public page (they stay in the portal).
+- **Brother directory** (signed-in brothers): everything, including emails and phone.
+- Pledge classes are listed in the order they first appear in the sheet, so sort the
+  tab the way you want them shown (e.g. newest class at the bottom).
+- The public page refreshes about once an hour after you edit the tab; the portal
+  within 5 minutes.
+
+Access requests use the names on this tab:
 
 - Anyone can sign in with Google, but someone whose email isn't on **Members** sees only
   a "Request access" form asking for their full name. Nothing brother-only is shown.

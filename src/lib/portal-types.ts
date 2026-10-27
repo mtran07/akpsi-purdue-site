@@ -45,3 +45,17 @@ export type ChapterCalendar = {
   calendarId: string;
   events: CalendarEvent[];
 };
+
+/** A brother from the Roster tab. Contact fields only come from the portal. */
+export type Brother = {
+  id: string;
+  name: string;
+  pledgeClass?: string;
+  gradYear?: string;
+  major?: string;
+  position?: string;
+  linkedin?: string;
+  email?: string;
+  personalEmail?: string;
+  phone?: string;
+};

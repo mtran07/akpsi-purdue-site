@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import execBoard from "@/data/exec-board.json";
 import committeeHeads from "@/data/committee-heads.json";
 import { PageHeader, Section } from "@/components/page-header";
 import { PersonCard } from "@/components/person-card";
+import { BrotherRoster } from "@/components/brother-roster";
+import { getPublicRoster } from "@/lib/public-roster";
 
 export const metadata: Metadata = {
   title: "Members",
-  description: "Meet the executive board and committee heads of AKPsi Pi Omega.",
+  description: "Meet the executive board, committee heads and active brothers of AKPsi Pi Omega.",
 };
 
 export default function MembersPage() {
@@ -15,7 +18,7 @@ export default function MembersPage() {
       <PageHeader
         eyebrow="Members"
         title="Meet the brothers"
-        intro="The officers and committee heads who lead Pi Omega this semester."
+        intro="The officers, committee heads and active brothers of Pi Omega."
       />
 
       <Section id="executive-board" title={`Executive board · ${execBoard.term}`}>
@@ -36,6 +39,21 @@ export default function MembersPage() {
           ))}
         </ul>
       </Section>
+
+      <Suspense>
+        <ActiveBrothers />
+      </Suspense>
     </>
+  );
+}
+
+async function ActiveBrothers() {
+  const brothers = await getPublicRoster();
+  // No roster yet, or the sheet is unreachable: leave the section out.
+  if (!brothers || brothers.length === 0) return null;
+  return (
+    <Section id="brothers" title="Active brothers">
+      <BrotherRoster brothers={brothers} />
+    </Section>
   );
 }

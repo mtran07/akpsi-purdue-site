@@ -2,10 +2,10 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { PageHeader, Section } from "@/components/page-header";
 import {
-  AlumniCallout,
   NotConfiguredPanel,
   NotMemberPanel,
   PanelSkeleton,
+  PortalCallouts,
   ResourceList,
   SignInPanel,
   SignOutButton,
@@ -50,7 +50,7 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
         <SignOutButton />
       </div>
 
-      <AlumniCallout />
+      <PortalCallouts />
 
       <div>
         <h2 className="font-display text-2xl font-bold text-navy">Upcoming events</h2>

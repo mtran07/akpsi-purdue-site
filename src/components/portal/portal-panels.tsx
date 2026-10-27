@@ -125,15 +125,28 @@ export function ResourceList({ resources }: { resources: Resource[] | null }) {
   );
 }
 
-export function AlumniCallout() {
+export function PortalCallouts() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <Callout
+        href="/portal/brothers"
+        eyebrow="Brother directory"
+        title="Emails, phone numbers and pledge classes of active brothers"
+      />
+      <Callout href="/portal/alumni" eyebrow="Alumni directory" title="Find Pi Omega alumni by company, major or class" />
+    </div>
+  );
+}
+
+function Callout({ href, eyebrow, title }: { href: string; eyebrow: string; title: string }) {
   return (
     <Link
-      href="/portal/alumni"
+      href={href}
       className="flex items-center justify-between gap-6 rounded-xl bg-navy p-6 text-white transition hover:bg-navy-deep"
     >
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-gold">Alumni directory</p>
-        <p className="mt-1 font-display text-xl font-bold">Find Pi Omega alumni by company, major or class</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-gold">{eyebrow}</p>
+        <p className="mt-1 font-display text-xl font-bold">{title}</p>
       </div>
       <span aria-hidden className="text-2xl text-gold">
         →

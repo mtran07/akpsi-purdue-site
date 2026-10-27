@@ -1,5 +1,5 @@
 import "server-only";
-import type { Alumnus, ChapterCalendar, Member, Resource } from "@/lib/portal-types";
+import type { Alumnus, Brother, ChapterCalendar, Member, Resource } from "@/lib/portal-types";
 
 /*
   Raw access to the portal's Google Sheet, through the Apps Script web app in
@@ -10,7 +10,7 @@ import type { Alumnus, ChapterCalendar, Member, Resource } from "@/lib/portal-ty
   which checks that the visitor is a signed-in member first.
 */
 
-type ScriptAction = "members" | "alumni" | "resources" | "events";
+type ScriptAction = "members" | "alumni" | "resources" | "events" | "brothers" | "roster";
 type ScriptResponse<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export function isPortalConfigured() {
@@ -148,4 +148,18 @@ export async function fetchResources(): Promise<Resource[]> {
 /** Upcoming events from the chapter Google Calendar (next 60 days). Cached for a few minutes. */
 export async function fetchEvents(): Promise<ChapterCalendar> {
   return cachedScript<ChapterCalendar>("events");
+}
+
+/** Brothers with emails and phone numbers, for the portal only. Cached for a few minutes. */
+export async function fetchBrothers(): Promise<Brother[]> {
+  return cachedScript<Brother[]>("brothers");
+}
+
+/**
+ * The PUBLIC roster: the Apps Script strips emails and phone numbers and
+ * leaves out anyone marked "No" under Show on website. Safe for public pages;
+ * cache it with "use cache" there (src/lib/public-roster.ts).
+ */
+export async function fetchPublicRoster(): Promise<Brother[]> {
+  return callScript<Brother[]>("roster");
 }

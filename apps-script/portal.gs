@@ -18,6 +18,10 @@
  *   ?action=alumni     alumni directory rows (phone numbers are never returned)
  *   ?action=resources  brother-only links from the "Resources" tab
  *   ?action=columns    setup check: which alumni columns were recognized
+ *   ?action=roster     PUBLIC brother roster from the Roster tab: name, pledge
+ *                      class, class year, major, position, LinkedIn only.
+ *                      Rows with "Show on website" = No are left out.
+ *   ?action=brothers   full Roster tab incl. emails and phone (portal only)
  *   ?action=events     upcoming events from the chapter Google Calendar
  *                      (script property CALENDAR_ID; the account that owns
  *                      this script must be able to see that calendar)
@@ -85,6 +89,12 @@ function doGet(e) {
         return json_({ ok: true, data: readResources_(readTable_(spreadsheet, RESOURCES_TAB)) });
       case 'columns':
         return json_({ ok: true, data: describeColumns_(readTable_(spreadsheet, alumniTab).headers) });
+      case 'roster':
+        if (!spreadsheet.getSheetByName(ROSTER_TAB)) return json_({ ok: true, data: [] });
+        return json_({ ok: true, data: readBrothers_(readTable_(spreadsheet, ROSTER_TAB), false) });
+      case 'brothers':
+        if (!spreadsheet.getSheetByName(ROSTER_TAB)) return json_({ ok: true, data: [] });
+        return json_({ ok: true, data: readBrothers_(readTable_(spreadsheet, ROSTER_TAB), true) });
       case 'events':
         return json_({ ok: true, data: readEvents_(props.getProperty('CALENDAR_ID')) });
       default:
@@ -305,6 +315,68 @@ function readAlumni_(table) {
     alumni.push(record);
   });
   return alumni;
+}
+
+/**
+ * Roster tab columns (headers matched like the alumni tab; only Name is required):
+ * Name | Pledge Class | Class Year | Major | Position | LinkedIn |
+ * Purdue Email | Personal Email | Phone | Show on website
+ */
+var BROTHER_FIELDS = {
+  name: ['name', 'fullname', 'brother'],
+  pledgeClass: ['pledgeclass', 'pledge', 'pc'],
+  gradYear: ['classyear', 'gradyear', 'graduationyear', 'graduation', 'year'],
+  major: ['major', 'majors'],
+  position: ['position', 'role', 'office', 'title'],
+  linkedin: ['linkedin', 'linkedinurl', 'linkedinprofile'],
+  email: ['purdueemail', 'email', 'emailaddress', 'schoolemail'],
+  personalEmail: ['personalemail', 'gmail', 'otheremail'],
+  phone: ['phone', 'phonenumber', 'cell', 'mobile'],
+  show: ['showonwebsite', 'public', 'showpublicly', 'website']
+};
+var PUBLIC_BROTHER_FIELDS = ['pledgeClass', 'gradYear', 'major', 'position'];
+
+/**
+ * Brothers from the Roster tab, in sheet order. withContact=false is the
+ * public roster: no emails or phone, and anyone marked "No" under
+ * Show on website is left out.
+ */
+function readBrothers_(table, withContact) {
+  var cols = {};
+  Object.keys(BROTHER_FIELDS).forEach(function (field) {
+    cols[field] = findColumns_(table.headers, BROTHER_FIELDS[field]);
+  });
+  var isEmail = function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); };
+
+  var brothers = [];
+  table.rows.forEach(function (row, index) {
+    var get = function (field) {
+      var value = firstValue_(row, cols[field]);
+      return /^(n\/?a|none|-)$/i.test(value) ? '' : value;
+    };
+    var name = get('name');
+    if (!name) return;
+    if (!withContact && /^(no|n|false|hide|hidden)$/i.test(get('show'))) return;
+
+    var record = { id: String(index + 2), name: name };
+    PUBLIC_BROTHER_FIELDS.forEach(function (field) {
+      var value = get(field);
+      if (value) record[field] = value.slice(0, 120);
+    });
+    var linkedin = normalizeLinkedIn_(get('linkedin'));
+    if (linkedin) record.linkedin = linkedin;
+
+    if (withContact) {
+      var email = get('email').toLowerCase();
+      if (isEmail(email)) record.email = email;
+      var personal = get('personalEmail').toLowerCase();
+      if (isEmail(personal) && personal !== email) record.personalEmail = personal;
+      var phone = get('phone').replace(/[^\d+()\-.\s]/g, '').trim();
+      if (phone.replace(/\D/g, '').length >= 10) record.phone = phone;
+    }
+    brothers.push(record);
+  });
+  return brothers;
 }
 
 /** Resources tab: Title | URL | Description | Category. Only https links are returned. */
