@@ -1,5 +1,5 @@
 import "server-only";
-import type { Alumnus, Member, Resource } from "@/lib/portal-types";
+import type { Alumnus, ChapterCalendar, Member, Resource } from "@/lib/portal-types";
 
 /*
   Raw access to the portal's Google Sheet, through the Apps Script web app in
@@ -10,7 +10,7 @@ import type { Alumnus, Member, Resource } from "@/lib/portal-types";
   which checks that the visitor is a signed-in member first.
 */
 
-type ScriptAction = "members" | "alumni" | "resources";
+type ScriptAction = "members" | "alumni" | "resources" | "events";
 type ScriptResponse<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export function isPortalConfigured() {
@@ -115,4 +115,9 @@ export async function fetchAlumni(): Promise<Alumnus[]> {
 /** Brother-only links (Drive folders, calendar, docs). Fetched fresh. */
 export async function fetchResources(): Promise<Resource[]> {
   return callScript<Resource[]>("resources");
+}
+
+/** Upcoming events from the chapter Google Calendar (next 60 days). Fetched fresh. */
+export async function fetchEvents(): Promise<ChapterCalendar> {
+  return callScript<ChapterCalendar>("events");
 }

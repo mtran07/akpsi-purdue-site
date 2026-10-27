@@ -62,6 +62,7 @@ coffee-chat drafts. What's left is setup and moving people over. Follow
 | 4.5 | Retire the Netlify directory and its old Apps Script deployment | S | Melissa |
 | 4.6 | ~~Add map and insights views to the directory, like the old site had~~ Done: cards, list, map, insights, Near Me | M | |
 | 4.7 | Update the live Apps Script to the latest `portal.gs` (adds Sector, Prev. Companies and sign-in requests) and deploy a new version | S | Melissa |
+| 4.10 | Set `CALENDAR_ID` in the Apps Script so the portal shows chapter events; share the calendar with brothers so they can subscribe | S | Melissa |
 | 4.9 | Add a **Roster** tab (import `roster-tab.csv`), optionally set `NOTIFY_EMAIL`, and approve `Pending` rows as they come in | S | Melissa / VP Membership |
 | 4.8 | Add map coordinates for any common alumni cities the map reports as unrecognized | S | |
 
