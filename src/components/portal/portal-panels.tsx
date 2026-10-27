@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signInWithGoogle, signOutOfPortal } from "@/app/portal/actions";
 import type { Resource } from "@/lib/portal-types";
+import { RequestAccessForm } from "@/components/portal/request-access-form";
 
 const ERROR_MESSAGES: Record<string, string> = {
   AccessDenied:
@@ -8,32 +9,14 @@ const ERROR_MESSAGES: Record<string, string> = {
   Configuration: "Sign-in isn't working right now. Let the Technology Committee know.",
 };
 
-// After a sign-in from an email that isn't on the list yet (see src/auth.ts).
-const ACCESS_MESSAGES: Record<string, { tone: "info" | "error"; text: string }> = {
-  pending: {
-    tone: "info",
-    text: "We found your name on the chapter roster and sent your request to the officers. Once they approve it, sign in again with the same Google account.",
-  },
-  "no-match": {
-    tone: "error",
-    text: "That Google account isn't on the member list, and its name didn't match anyone on the roster. Try your personal Gmail, or make sure your Google account uses your full name.",
-  },
-  blocked: {
-    tone: "error",
-    text: "That account doesn't have portal access. If that's a mistake, contact the VP of Membership.",
-  },
-};
-
 export function Card({ children }: { children: React.ReactNode }) {
   return <div className="max-w-xl rounded-xl border border-line bg-white p-8">{children}</div>;
 }
 
-export function SignInPanel({ error, access }: { error?: string; access?: string }) {
-  const notice = access
-    ? ACCESS_MESSAGES[access]
-    : error
-      ? { tone: "error" as const, text: ERROR_MESSAGES[error] ?? "Sign-in didn't work. Please try again." }
-      : null;
+export function SignInPanel({ error }: { error?: string }) {
+  const notice = error
+    ? { tone: "error" as const, text: ERROR_MESSAGES[error] ?? "Sign-in didn't work. Please try again." }
+    : null;
 
   return (
     <Card>
@@ -74,16 +57,17 @@ export function SignOutButton() {
   );
 }
 
-export function NotMemberPanel({ email }: { email: string }) {
+export function NotMemberPanel({ email, name }: { email: string; name: string }) {
   return (
     <Card>
-      <h2 className="font-display text-2xl font-bold text-navy">No access</h2>
+      <h2 className="font-display text-2xl font-bold text-navy">Request access</h2>
       <p className="mt-2 text-muted">
         You&apos;re signed in as <span className="font-medium text-ink">{email}</span>, which isn&apos;t on the
-        current member list. If that&apos;s a mistake, ask the VP of Membership to add you.
+        member list yet. Type your full name and we&apos;ll check it against the chapter roster.
       </p>
-      <div className="mt-6">
-        <SignOutButton />
+      <RequestAccessForm defaultName={name} />
+      <div className="mt-6 flex items-center gap-2 border-t border-line pt-4 text-sm text-muted">
+        Wrong account? <SignOutButton />
       </div>
     </Card>
   );

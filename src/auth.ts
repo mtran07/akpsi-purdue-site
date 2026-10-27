@@ -1,10 +1,9 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { findMember, requestAccess } from "@/lib/portal-data";
 
 /*
-  Sign-in for the member portal: "Sign in with Google", allowed only for
-  emails on the Members tab of the portal Google Sheet.
+  Sign-in for the member portal: "Sign in with Google". Access to anything
+  brother-only is decided per request by the Members tab (src/lib/dal.ts).
 
   Environment variables (set in Vercel → Settings → Environment Variables):
     AUTH_SECRET          random string that encrypts the session cookie
@@ -29,26 +28,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.provider !== "google") return false;
       if (!profile?.email || profile.email_verified !== true) return false;
 
-      let isMember: boolean;
-      try {
-        isMember = (await findMember(profile.email)) !== null;
-      } catch (error) {
-        // If the sheet can't be reached, fail closed: nobody gets in.
-        console.error("Member check failed during sign-in", error);
-        return false;
-      }
-      if (isMember) return true;
-
-      // Not on the list. If their Google name matches a brother on the roster,
-      // file a Pending request for an officer to approve in the sheet. Either
-      // way they are NOT signed in; returning a URL just picks the message.
-      try {
-        const result = await requestAccess(profile.email, typeof profile.name === "string" ? profile.name : "");
-        return `/portal?access=${result}`;
-      } catch (error) {
-        console.error("Access request failed during sign-in", error);
-        return false;
-      }
+      // Any verified Google account may sign in. Being signed in grants nothing:
+      // every brother-only page and action goes through src/lib/dal.ts, which
+      // checks the Members tab on each request. Someone who isn't on it sees
+      // only the request-access form.
+      return true;
     },
   },
 });
