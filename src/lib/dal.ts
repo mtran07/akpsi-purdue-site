@@ -2,8 +2,16 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { fetchAlumni, fetchEvents, fetchResources, findMember } from "@/lib/portal-data";
-import type { Alumnus, ChapterCalendar, Resource } from "@/lib/portal-types";
+import {
+  fetchAlumni,
+  fetchBrothers,
+  fetchEvents,
+  fetchMyProfile,
+  fetchResources,
+  findMember,
+  type ProfileResult,
+} from "@/lib/portal-data";
+import type { Alumnus, Brother, ChapterCalendar, Resource } from "@/lib/portal-types";
 
 /*
   Data access layer for the member portal. Every read of brother-only data
@@ -79,4 +87,18 @@ export async function getEventsForMember(): Promise<ChapterCalendar | null> {
     console.error("Couldn't load chapter calendar", error);
     return null;
   }
+}
+
+/** Active brothers with contact info, for the portal's brother directory. */
+export async function getBrothersForMember(): Promise<Brother[]> {
+  const pending = fetchBrothers();
+  pending.catch(() => {});
+  await requireMember();
+  return pending;
+}
+
+/** The signed-in brother's own Roster row, for the My profile page. */
+export async function getMyProfile(): Promise<ProfileResult> {
+  const viewer = await requireMember();
+  return fetchMyProfile(viewer.email, viewer.name);
 }

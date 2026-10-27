@@ -1,5 +1,5 @@
 import "server-only";
-import type { Alumnus, ChapterCalendar, Member, Resource } from "@/lib/portal-types";
+import type { Alumnus, Brother, ChapterCalendar, Member, Resource } from "@/lib/portal-types";
 
 /*
   Raw access to the portal's Google Sheet, through the Apps Script web app in
@@ -10,7 +10,7 @@ import type { Alumnus, ChapterCalendar, Member, Resource } from "@/lib/portal-ty
   which checks that the visitor is a signed-in member first.
 */
 
-type ScriptAction = "members" | "alumni" | "resources" | "events";
+type ScriptAction = "members" | "alumni" | "resources" | "events" | "brothers" | "roster";
 type ScriptResponse<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export function isPortalConfigured() {
@@ -88,23 +88,62 @@ export type AccessRequestResult = "pending" | "no-match" | "blocked" | "full";
  * email to Members as "Pending" for an officer to approve. Never grants access.
  */
 export async function requestAccess(email: string, name: string, googleName: string): Promise<AccessRequestResult> {
+  const data = await postScript<{ result: AccessRequestResult }>("request", { email, name, googleName });
+  return data.result;
+}
+
+/**
+ * POST to the Apps Script (writes and anything carrying personal details), so
+ * nothing ends up in a URL or a log. The key travels in the body.
+ */
+async function postScript<T>(action: string, payload: Record<string, unknown>): Promise<T> {
   const base = process.env.PORTAL_SCRIPT_URL;
   const key = process.env.PORTAL_SCRIPT_KEY;
   if (!base || !key) throw new Error("Portal data source is not configured.");
 
-  // POST so the request isn't logged as a URL; Apps Script's redirect is followed as a GET to fetch the result.
+  // Apps Script's redirect is followed as a GET to fetch the result.
   const res = await fetch(base, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ key, action: "request", email, name, googleName }),
+    body: JSON.stringify({ ...payload, key, action }),
     cache: "no-store",
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(25_000),
   });
   if (!res.ok) throw new Error(`Portal data source responded ${res.status}.`);
 
-  const body = (await res.json()) as ScriptResponse<{ result: AccessRequestResult }>;
+  const body = (await res.json()) as ScriptResponse<T>;
   if (!body.ok) throw new Error(`Portal data source error: ${body.error}`);
-  return body.data.result;
+  return body.data;
+}
+
+export type ProfileResult =
+  | { found: false }
+  | { found: true; saved?: boolean; error?: string; profile: Brother & { show: boolean } };
+
+/** A brother's own Roster row, found by email (then name). Never cached. */
+export async function fetchMyProfile(email: string, name: string): Promise<ProfileResult> {
+  return postScript<ProfileResult>("profile", { email, name });
+}
+
+/** Saves a brother's own edits. The script re-checks which fields may change. */
+export async function saveMyProfile(email: string, name: string, updates: Record<string, string | boolean>) {
+  const result = await postScript<ProfileResult>("profile", { email, name, updates });
+  contentCache.delete("brothers"); // show the change in the directory right away
+  return result;
+}
+
+export type Excusal = {
+  email: string;
+  name: string;
+  event: string;
+  eventDate: string;
+  reason: string;
+  proof: { type: string; data: string } | null;
+};
+
+/** Emails an excusal request to the secretary (with proof attached) and logs it. */
+export async function sendExcusal(excusal: Excusal): Promise<void> {
+  await postScript<{ sent: boolean }>("excuse", excusal);
 }
 
 /*
@@ -148,4 +187,18 @@ export async function fetchResources(): Promise<Resource[]> {
 /** Upcoming events from the chapter Google Calendar (next 60 days). Cached for a few minutes. */
 export async function fetchEvents(): Promise<ChapterCalendar> {
   return cachedScript<ChapterCalendar>("events");
+}
+
+/** Brothers with emails and phone numbers, for the portal only. Cached for a few minutes. */
+export async function fetchBrothers(): Promise<Brother[]> {
+  return cachedScript<Brother[]>("brothers");
+}
+
+/**
+ * The PUBLIC roster: the Apps Script strips emails and phone numbers and
+ * leaves out anyone marked "No" under Show on website. Safe for public pages;
+ * cache it with "use cache" there (src/lib/public-roster.ts).
+ */
+export async function fetchPublicRoster(): Promise<Brother[]> {
+  return callScript<Brother[]>("roster");
 }

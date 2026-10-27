@@ -18,6 +18,10 @@
  *   ?action=alumni     alumni directory rows (phone numbers are never returned)
  *   ?action=resources  brother-only links from the "Resources" tab
  *   ?action=columns    setup check: which alumni columns were recognized
+ *   ?action=roster     PUBLIC brother roster from the Roster tab: name, pledge
+ *                      class, class year, major, position, LinkedIn only.
+ *                      Rows with "Show on website" = No are left out.
+ *   ?action=brothers   full Roster tab incl. emails and phone (portal only)
  *   ?action=events     upcoming events from the chapter Google Calendar
  *                      (script property CALENDAR_ID; the account that owns
  *                      this script must be able to see that calendar)
@@ -29,8 +33,14 @@
  *                      tab, adds their email to Members as "Pending". Changing
  *                      Pending to Active lets them in. No match: nothing written.
  *
- * Optional script property:
+ *   action=profile     a signed-in brother's own Roster row (found by email,
+ *                      then name); with "updates", saves the fields they may edit
+ *   action=excuse      emails an excusal request (with an optional proof photo)
+ *                      to SECRETARY_EMAIL and logs it on the Excusals tab
+ *
+ * Optional script properties:
  *   NOTIFY_EMAIL       comma-separated addresses to email when a request comes in
+ *   SECRETARY_EMAIL    where excusal requests go (needed for the excusal form)
  */
 
 var MEMBERS_TAB = 'Members';
@@ -85,6 +95,12 @@ function doGet(e) {
         return json_({ ok: true, data: readResources_(readTable_(spreadsheet, RESOURCES_TAB)) });
       case 'columns':
         return json_({ ok: true, data: describeColumns_(readTable_(spreadsheet, alumniTab).headers) });
+      case 'roster':
+        if (!spreadsheet.getSheetByName(ROSTER_TAB)) return json_({ ok: true, data: [] });
+        return json_({ ok: true, data: readBrothers_(readTable_(spreadsheet, ROSTER_TAB), false) });
+      case 'brothers':
+        if (!spreadsheet.getSheetByName(ROSTER_TAB)) return json_({ ok: true, data: [] });
+        return json_({ ok: true, data: readBrothers_(readTable_(spreadsheet, ROSTER_TAB), true) });
       case 'events':
         return json_({ ok: true, data: readEvents_(props.getProperty('CALENDAR_ID')) });
       default:
@@ -107,8 +123,23 @@ function doPost(e) {
   if (!expectedKey || !safeEqual_(String(body.key || ''), expectedKey)) {
     return json_({ ok: false, error: 'unauthorized' });
   }
-  if (body.action !== 'request') return json_({ ok: false, error: 'unknown action' });
+  try {
+    switch (body.action) {
+      case 'request': return handleRequest_(body, props);
+      case 'profile': return handleProfile_(body, props);
+      case 'excuse': return handleExcuse_(body, props);
+      default: return json_({ ok: false, error: 'unknown action' });
+    }
+  } catch (err) {
+    return json_({ ok: false, error: String(err && err.message ? err.message : err) });
+  }
+}
 
+function clean_(v, max) {
+  return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
+function handleRequest_(body, props) {
   var clean = function (v, max) { return String(v || '').replace(/\s+/g, ' ').trim().slice(0, max); };
   var request = {
     email: clean(body.email, 200).toLowerCase(),
@@ -141,6 +172,196 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/* ---------------- My profile ---------------- */
+
+/** Fields a brother may change on their own Roster row (name, position and Purdue email stay with officers). */
+var EDITABLE_FIELDS = {
+  pledgeClass: 'Pledge Class',
+  gradYear: 'Class Year',
+  major: 'Major',
+  linkedin: 'LinkedIn',
+  personalEmail: 'Personal Email',
+  phone: 'Phone',
+  show: 'Show on website'
+};
+
+function handleProfile_(body, props) {
+  var email = clean_(body.email, 200).toLowerCase();
+  var name = clean_(body.name, 100);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json_({ ok: false, error: 'bad request' });
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return json_({ ok: false, error: 'busy, try again' });
+  try {
+    var spreadsheet = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+    var sheet = spreadsheet.getSheetByName(ROSTER_TAB);
+    if (!sheet) return json_({ ok: true, data: { found: false } });
+    var table = readTable_(spreadsheet, ROSTER_TAB);
+    var index = findRosterRow_(table, email, name);
+    if (index < 0) return json_({ ok: true, data: { found: false } });
+
+    if (body.updates) {
+      var updates = validateProfile_(body.updates);
+      if (updates.error) return json_({ ok: true, data: { found: true, error: updates.error } });
+      // Link this sign-in to the row for next time.
+      if (!/@purdue\.edu$/.test(email) && !firstValue_(table.rows[index], findColumns_(table.headers, BROTHER_FIELDS.personalEmail)) && !('personalEmail' in body.updates && updates.values.personalEmail)) {
+        updates.values.personalEmail = email;
+      }
+      writeRow_(sheet, table, index, updates.values);
+      table = readTable_(spreadsheet, ROSTER_TAB);
+    }
+    var profile = readBrothers_({ headers: table.headers, rows: [table.rows[index]] }, true)[0] || {};
+    profile.show = !/^(no|n|false|hide|hidden)$/i.test(firstValue_(table.rows[index], findColumns_(table.headers, BROTHER_FIELDS.show)));
+    delete profile.id;
+    return json_({ ok: true, data: { found: true, saved: Boolean(body.updates), profile: profile } });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * The Roster row for a signed-in brother: their email in Purdue Email or
+ * Personal Email, else exactly one row whose name matches. -1 if none.
+ */
+function findRosterRow_(table, email, name) {
+  var emailCols = findColumns_(table.headers, BROTHER_FIELDS.email).concat(findColumns_(table.headers, BROTHER_FIELDS.personalEmail));
+  var nameCol = findColumns_(table.headers, BROTHER_FIELDS.name)[0];
+  for (var i = 0; i < table.rows.length; i++) {
+    for (var c = 0; c < emailCols.length; c++) {
+      if (String(table.rows[i][emailCols[c]] || '').trim().toLowerCase() === email) return i;
+    }
+  }
+  if (nameCol === undefined || !name) return -1;
+  var wanted = nameTokens_(name).join(' ');
+  var exact = [], loose = [];
+  table.rows.forEach(function (row, i) {
+    var rowName = String(row[nameCol] || '');
+    if (!rowName) return;
+    if (nameTokens_(rowName).join(' ') === wanted) exact.push(i);
+    else if (namesMatch_(name, rowName)) loose.push(i);
+  });
+  if (exact.length === 1) return exact[0];
+  if (exact.length === 0 && loose.length === 1) return loose[0];
+  return -1; // nobody, or more than one possible match: don't guess
+}
+
+/** Checks and tidies a brother's edits. Returns { values } or { error }. */
+function validateProfile_(input) {
+  var values = {};
+  var text = function (key, max) { if (key in input) values[key] = clean_(input[key], max); };
+  text('pledgeClass', 40);
+  text('major', 80);
+  if ('gradYear' in input) {
+    var year = clean_(input.gradYear, 10);
+    if (year && !/^20[2-3]\d$/.test(year)) return { error: 'Class year should look like 2028.' };
+    values.gradYear = year;
+  }
+  if ('linkedin' in input) {
+    var link = clean_(input.linkedin, 200);
+    // A bare username like "janedoe" becomes linkedin.com/in/janedoe; any other non-LinkedIn link is refused.
+    if (link && /^@?[A-Za-z0-9_-]{3,100}$/.test(link)) link = 'linkedin.com/in/' + link.replace(/^@/, '');
+    var normalized = link ? normalizeLinkedIn_(link) : '';
+    if (link && !normalized) return { error: 'That LinkedIn link doesn\'t look right.' };
+    values.linkedin = normalized;
+  }
+  if ('personalEmail' in input) {
+    var personal = clean_(input.personalEmail, 200).toLowerCase();
+    if (personal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(personal)) return { error: 'That personal email doesn\'t look right.' };
+    values.personalEmail = personal;
+  }
+  if ('phone' in input) {
+    var phone = clean_(input.phone, 30).replace(/[^\d+()\-.\s]/g, '').trim();
+    if (phone && phone.replace(/\D/g, '').length < 10) return { error: 'Phone numbers need at least 10 digits.' };
+    values.phone = phone;
+  }
+  if ('show' in input) values.show = input.show === true || input.show === 'true' || input.show === 'Yes' ? 'Yes' : 'No';
+  return { values: values };
+}
+
+/** Writes values into one Roster row, adding any missing column at the end. */
+function writeRow_(sheet, table, index, values) {
+  var headers = table.headers.slice();
+  Object.keys(values).forEach(function (field) {
+    var col = findColumns_(headers, BROTHER_FIELDS[field])[0];
+    if (col === undefined) {
+      headers.push(EDITABLE_FIELDS[field]);
+      col = headers.length - 1;
+      sheet.getRange(1, col + 1).setValue(EDITABLE_FIELDS[field]);
+    }
+    // Plain text, so "+1 317..." or "=..." is never read as a formula.
+    sheet.getRange(index + 2, col + 1).setNumberFormat('@').setValue(String(values[field]));
+  });
+}
+
+/* ---------------- Excusal requests ---------------- */
+
+var EXCUSALS_TAB = 'Excusals';
+var MAX_PROOF_BYTES = 2 * 1024 * 1024;
+
+function handleExcuse_(body, props) {
+  var to = props.getProperty('SECRETARY_EMAIL');
+  if (!to) return json_({ ok: false, error: 'SECRETARY_EMAIL is not set' });
+
+  var request = {
+    email: clean_(body.email, 200).toLowerCase(),
+    name: clean_(body.name, 100),
+    event: clean_(body.event, 150),
+    eventDate: clean_(body.eventDate, 40),
+    reason: String(body.reason || '').trim().slice(0, 2000)
+  };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(request.email) || !request.event || !request.reason) {
+    return json_({ ok: false, error: 'bad request' });
+  }
+
+  var attachments = [];
+  if (body.proof && body.proof.data) {
+    var type = String(body.proof.type || '');
+    if (['image/jpeg', 'image/png', 'image/webp'].indexOf(type) === -1) return json_({ ok: false, error: 'bad proof type' });
+    var bytes = Utilities.base64Decode(String(body.proof.data));
+    if (bytes.length > MAX_PROOF_BYTES) return json_({ ok: false, error: 'proof too large' });
+    var ext = type === 'image/png' ? 'png' : type === 'image/webp' ? 'webp' : 'jpg';
+    attachments.push(Utilities.newBlob(bytes, type, 'proof-' + request.name.replace(/[^A-Za-z0-9]+/g, '-') + '.' + ext));
+  }
+
+  var lines = [
+    request.name + ' submitted an excusal request through the brother portal.',
+    '',
+    'Event: ' + request.event + (request.eventDate ? ' (' + request.eventDate + ')' : ''),
+    'From: ' + request.name + ' <' + request.email + '>',
+    '',
+    'Reason:',
+    request.reason,
+    '',
+    attachments.length ? 'Proof is attached.' : 'No proof was attached.',
+    '',
+    'Reply to this email to answer ' + request.name.split(' ')[0] + ' directly.'
+  ];
+  MailApp.sendEmail({
+    to: to,
+    cc: request.email,
+    replyTo: request.email,
+    subject: 'Excusal request: ' + request.name + ', ' + request.event,
+    body: lines.join('\n'),
+    attachments: attachments
+  });
+
+  // Log it for the secretary (best effort: the email already went out).
+  try {
+    var spreadsheet = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+    var log = spreadsheet.getSheetByName(EXCUSALS_TAB);
+    if (!log) {
+      log = spreadsheet.insertSheet(EXCUSALS_TAB);
+      log.appendRow(['Submitted', 'Name', 'Email', 'Event', 'Event date', 'Reason', 'Proof attached', 'Decision']);
+      log.setFrozenRows(1);
+    }
+    var row = [new Date(), request.name, request.email, request.event, request.eventDate, request.reason, attachments.length ? 'Yes' : 'No', ''];
+    log.appendRow(row.map(function (v) { return typeof v === 'string' && /^[=+\-@]/.test(v) ? "'" + v : v; }));
+  } catch (err) {
+    // ignore
+  }
+  return json_({ ok: true, data: { sent: true } });
 }
 
 /* ---------------- Readers (pure functions, no Google APIs) ---------------- */
@@ -305,6 +526,68 @@ function readAlumni_(table) {
     alumni.push(record);
   });
   return alumni;
+}
+
+/**
+ * Roster tab columns (headers matched like the alumni tab; only Name is required):
+ * Name | Pledge Class | Class Year | Major | Position | LinkedIn |
+ * Purdue Email | Personal Email | Phone | Show on website
+ */
+var BROTHER_FIELDS = {
+  name: ['name', 'fullname', 'brother'],
+  pledgeClass: ['pledgeclass', 'pledge', 'pc'],
+  gradYear: ['classyear', 'gradyear', 'graduationyear', 'graduation', 'year'],
+  major: ['major', 'majors'],
+  position: ['position', 'role', 'office', 'title'],
+  linkedin: ['linkedin', 'linkedinurl', 'linkedinprofile'],
+  email: ['purdueemail', 'email', 'emailaddress', 'schoolemail'],
+  personalEmail: ['personalemail', 'gmail', 'otheremail'],
+  phone: ['phone', 'phonenumber', 'cell', 'mobile'],
+  show: ['showonwebsite', 'public', 'showpublicly', 'website']
+};
+var PUBLIC_BROTHER_FIELDS = ['pledgeClass', 'gradYear', 'major', 'position'];
+
+/**
+ * Brothers from the Roster tab, in sheet order. withContact=false is the
+ * public roster: no emails or phone, and anyone marked "No" under
+ * Show on website is left out.
+ */
+function readBrothers_(table, withContact) {
+  var cols = {};
+  Object.keys(BROTHER_FIELDS).forEach(function (field) {
+    cols[field] = findColumns_(table.headers, BROTHER_FIELDS[field]);
+  });
+  var isEmail = function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); };
+
+  var brothers = [];
+  table.rows.forEach(function (row, index) {
+    var get = function (field) {
+      var value = firstValue_(row, cols[field]);
+      return /^(n\/?a|none|-)$/i.test(value) ? '' : value;
+    };
+    var name = get('name');
+    if (!name) return;
+    if (!withContact && /^(no|n|false|hide|hidden)$/i.test(get('show'))) return;
+
+    var record = { id: String(index + 2), name: name };
+    PUBLIC_BROTHER_FIELDS.forEach(function (field) {
+      var value = get(field);
+      if (value) record[field] = value.slice(0, 120);
+    });
+    var linkedin = normalizeLinkedIn_(get('linkedin'));
+    if (linkedin) record.linkedin = linkedin;
+
+    if (withContact) {
+      var email = get('email').toLowerCase();
+      if (isEmail(email)) record.email = email;
+      var personal = get('personalEmail').toLowerCase();
+      if (isEmail(personal) && personal !== email) record.personalEmail = personal;
+      var phone = get('phone').replace(/[^\d+()\-.\s]/g, '').trim();
+      if (phone.replace(/\D/g, '').length >= 10) record.phone = phone;
+    }
+    brothers.push(record);
+  });
+  return brothers;
 }
 
 /** Resources tab: Title | URL | Description | Category. Only https links are returned. */
