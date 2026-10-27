@@ -8,6 +8,7 @@ import employers from "@/data/employers.json";
 import { Section } from "@/components/page-header";
 import { CountUp } from "@/components/count-up";
 import { Marquee } from "@/components/marquee";
+import { PresidentMessage } from "@/components/president-message";
 
 export default function HomePage() {
   return (
@@ -92,6 +93,8 @@ export default function HomePage() {
           ))}
         </dl>
       </section>
+
+      <PresidentMessage />
 
       <Section title={employers.heading} tone="alt">
         <Marquee items={employers.companies} label="Companies where Pi Omega brothers work" />
