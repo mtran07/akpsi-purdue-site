@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import chapterPhoto from "../../public/images/chapter/pi-omega-chapter.jpg";
 import site from "@/data/site.json";
 import about from "@/data/about.json";
 import rush from "@/data/rush.json";
@@ -13,7 +15,7 @@ export default function HomePage() {
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl"
         />
-        <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+        <div className="relative mx-auto max-w-6xl px-4 pb-28 pt-20 sm:px-6 sm:pb-36 sm:pt-28">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
             {site.school} · {site.chapter}
           </p>
@@ -39,6 +41,24 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Chapter photo, overlapping the bottom of the hero */}
+      <div className="relative mx-auto -mt-16 max-w-6xl px-4 sm:-mt-24 sm:px-6">
+        <figure>
+          <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-navy-deep shadow-xl ring-1 ring-black/5 sm:aspect-[37/10]">
+            <Image
+              src={chapterPhoto}
+              alt="Brothers of AKPsi's Pi Omega chapter filling a Purdue lecture hall, making the chapter's hand sign"
+              fill
+              sizes="(min-width: 1152px) 1104px, 100vw"
+              placeholder="blur"
+              loading="eager"
+              className="object-cover"
+            />
+          </div>
+          <figcaption className="mt-3 text-center text-sm text-muted">The Pi Omega chapter</figcaption>
+        </figure>
+      </div>
 
       <Section title="Our mission">
         <p className="max-w-3xl text-lg leading-relaxed text-muted">{about.mission}</p>
