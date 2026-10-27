@@ -77,6 +77,19 @@ Access requests use the names on this tab:
   the script to send email.
 - New pledge class: add their names to **Roster**. They sign in, you approve.
 
+**My profile** (portal): brothers edit their own Roster row: pledge class, class year,
+major, phone, personal email, LinkedIn and Show on website. Name, Position and Purdue
+Email stay officer-only. The portal finds their row by the email they sign in with
+(Purdue or Personal Email column), then by name; if two rows could match, it asks them
+to contact the VP of Membership instead of guessing. Missing columns are added to the
+tab automatically.
+
+**Excusal requests** (portal): set the script property `SECRETARY_EMAIL`. A request is
+emailed to the secretary with the brother CC'd and set as reply-to, a proof photo
+attached if they added one, and logged on an **Excusals** tab (created automatically,
+with a Decision column for the secretary). Emails are sent from the Google account that
+owns the Apps Script, so consider moving the script to the chapter tech account.
+
 **Resources** (optional): links shown on the portal home page
 
 | Title | URL | Description | Category |

@@ -2,7 +2,7 @@
 
 import { signIn, signOut } from "@/auth";
 import { getViewer } from "@/lib/dal";
-import { fetchAlumni, requestAccess } from "@/lib/portal-data";
+import { fetchAlumni, requestAccess, saveMyProfile, sendExcusal } from "@/lib/portal-data";
 import type { Alumnus } from "@/lib/portal-types";
 
 export async function signInWithGoogle() {
@@ -175,5 +175,84 @@ export async function requestPortalAccess(
   } catch (error) {
     console.error("Access request failed", error);
     return { status: "error", name };
+  }
+}
+
+/* ---------------- My profile ---------------- */
+
+export type ProfileState = { status: "idle" | "saved" | "error"; message?: string };
+
+const PROFILE_FIELDS = ["pledgeClass", "gradYear", "major", "linkedin", "personalEmail", "phone"] as const;
+
+export async function saveProfile(_previous: ProfileState, formData: FormData): Promise<ProfileState> {
+  const viewer = await getViewer();
+  if (viewer.status !== "member") return { status: "error", message: "Please sign in again." };
+
+  const updates: Record<string, string | boolean> = {};
+  for (const field of PROFILE_FIELDS) {
+    const value = formData.get(field);
+    if (typeof value === "string") updates[field] = value.slice(0, 200);
+  }
+  updates.show = formData.get("show") === "on";
+
+  try {
+    const result = await saveMyProfile(viewer.email, viewer.name, updates);
+    if (!result.found) return { status: "error", message: "We couldn't find you on the roster." };
+    if (result.error) return { status: "error", message: result.error };
+    return { status: "saved" };
+  } catch (error) {
+    console.error("Profile save failed", error);
+    return { status: "error", message: "Couldn't save right now. Try again in a minute." };
+  }
+}
+
+/* ---------------- Excusal requests ---------------- */
+
+export type ExcusalState = { status: "idle" | "sent" | "error"; message?: string };
+
+const EXCUSALS_PER_DAY = 10;
+const MAX_PROOF_BYTES = 2 * 1024 * 1024;
+const recentExcusals = new Map<string, number[]>();
+
+/** Magic numbers, so only real images are forwarded. */
+function imageType(bytes: Buffer): string | null {
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
+  if (bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "image/png";
+  if (bytes.subarray(0, 4).toString("ascii") === "RIFF" && bytes.subarray(8, 12).toString("ascii") === "WEBP") return "image/webp";
+  return null;
+}
+
+export async function submitExcusal(_previous: ExcusalState, formData: FormData): Promise<ExcusalState> {
+  const viewer = await getViewer();
+  if (viewer.status !== "member") return { status: "error", message: "Please sign in again." };
+
+  const text = (key: string, max: number) => String(formData.get(key) ?? "").trim().slice(0, max);
+  const event = text("event", 150) === "__other" ? text("otherEvent", 150) : text("event", 150);
+  const eventDate = text("eventDate", 40);
+  const reason = text("reason", 2000);
+  if (!event) return { status: "error", message: "Choose the event you'll miss." };
+  if (reason.length < 5) return { status: "error", message: "Add a short reason." };
+
+  let proof: { type: string; data: string } | null = null;
+  const file = formData.get("proof");
+  if (file instanceof File && file.size > 0) {
+    if (file.size > MAX_PROOF_BYTES) return { status: "error", message: "That photo is too large. Try a smaller one." };
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const type = imageType(bytes);
+    if (!type) return { status: "error", message: "Proof has to be a photo or screenshot (JPG or PNG)." };
+    proof = { type, data: bytes.toString("base64") };
+  }
+
+  const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+  const recent = (recentExcusals.get(viewer.email) ?? []).filter((t) => t > dayAgo);
+  if (recent.length >= EXCUSALS_PER_DAY) return { status: "error", message: "That's a lot of requests today. Contact the secretary directly." };
+  recentExcusals.set(viewer.email, [...recent, Date.now()]);
+
+  try {
+    await sendExcusal({ email: viewer.email, name: viewer.name, event, eventDate, reason, proof });
+    return { status: "sent" };
+  } catch (error) {
+    console.error("Excusal failed", error);
+    return { status: "error", message: "Couldn't send it right now. Try again, or email the secretary directly." };
   }
 }

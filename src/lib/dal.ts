@@ -2,7 +2,15 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { fetchAlumni, fetchBrothers, fetchEvents, fetchResources, findMember } from "@/lib/portal-data";
+import {
+  fetchAlumni,
+  fetchBrothers,
+  fetchEvents,
+  fetchMyProfile,
+  fetchResources,
+  findMember,
+  type ProfileResult,
+} from "@/lib/portal-data";
 import type { Alumnus, Brother, ChapterCalendar, Resource } from "@/lib/portal-types";
 
 /*
@@ -87,4 +95,10 @@ export async function getBrothersForMember(): Promise<Brother[]> {
   pending.catch(() => {});
   await requireMember();
   return pending;
+}
+
+/** The signed-in brother's own Roster row, for the My profile page. */
+export async function getMyProfile(): Promise<ProfileResult> {
+  const viewer = await requireMember();
+  return fetchMyProfile(viewer.email, viewer.name);
 }
