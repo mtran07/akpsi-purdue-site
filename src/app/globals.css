@@ -130,6 +130,51 @@ body {
   }
 }
 
+/* In-page links (like the hero's "Learn more") land below the sticky header. */
+section[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+/* Home hero (src/components/home-hero.tsx) */
+.hero-photo {
+  transform: scale(1.06);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-photo {
+    animation: hero-drift 28s ease-in-out infinite alternate;
+  }
+  .hero[data-paused="true"] .hero-photo,
+  .hero[data-paused="true"] .hero-cue-arrow {
+    animation-play-state: paused;
+  }
+  /* Headline, intro and buttons rise in one after another on load. */
+  .hero-in {
+    animation: hero-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms) both;
+  }
+  .hero-cue-arrow {
+    animation: hero-cue 2s ease-in-out infinite;
+  }
+}
+@keyframes hero-drift {
+  from {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.18) translate3d(-2%, -1.5%, 0);
+  }
+}
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+@keyframes hero-cue {
+  50% {
+    transform: translateY(4px);
+  }
+}
+
 /* Scrolling strip (src/components/marquee.tsx) */
 .marquee-track {
   animation: marquee var(--marquee-duration, 40s) linear infinite;
