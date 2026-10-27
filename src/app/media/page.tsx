@@ -6,7 +6,7 @@ import { PageHeader, Section } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: "Media",
-  description: "Photos, videos and Instagram highlights from AKPsi Pi Omega.",
+  description: "Instagram highlights from AKPsi Pi Omega: brother spotlights, interview advice, families, formal and retreat.",
 };
 
 export default function MediaPage() {
@@ -15,22 +15,10 @@ export default function MediaPage() {
       <PageHeader
         eyebrow="Media"
         title="Life in Pi Omega"
-        intro="Rush, professional events, service and brotherhood, in photos and video."
+        intro="Professional development, brotherhood and chapter traditions, straight from our Instagram."
       />
 
-      {/*
-        TODO (Media task in docs/TASKS.md):
-        - Embed the rush video from YouTube (unlisted) in a 16:9 iframe.
-        Instagram posts: add links to src/data/instagram.json.
-        Keep video and large photos OUT of the repo; link or embed them instead.
-      */}
-      <Section title="Rush video">
-        <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-line bg-paper-alt text-muted">
-          Rush video coming soon
-        </div>
-      </Section>
-
-      <Section title="On Instagram" tone="alt">
+      <Section title="On Instagram">
         <InstagramEmbeds posts={instagram.posts} />
         <p className="mt-8 text-muted">
           Follow{" "}

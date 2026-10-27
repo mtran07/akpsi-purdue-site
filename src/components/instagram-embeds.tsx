@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 // script is heavy, so it only loads once the section is close to the screen.
 // Until then, or if it's blocked, each card is a plain link to the post.
 
-type Post = { url: string; label?: string };
+type Post = { url: string; label?: string; blurb?: string };
 
 declare global {
   interface Window {
@@ -60,31 +60,53 @@ export function InstagramEmbeds({ posts }: { posts: Post[] }) {
   });
 
   return (
-    <div ref={ref} className="grid items-start justify-items-center gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {valid.map((post) => (
-        <div key={post.link} className="w-full max-w-[540px]">
-          {post.label && (
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gold">{post.label}</p>
-          )}
-          <blockquote
-            className="instagram-media"
-            data-instgrm-permalink={`${post.link}?utm_source=ig_embed`}
-            data-instgrm-version="14"
-            data-instgrm-captioned
-            style={{ margin: 0, minWidth: 0, width: "100%", maxWidth: 540 }}
+    <div ref={ref} className="grid items-start justify-items-center gap-x-8 gap-y-12 md:grid-cols-2">
+      {valid.map((post) =>
+        post.blurb ? (
+          // A post with a blurb gets its own row: words beside the post.
+          <div
+            key={post.link}
+            className="grid w-full items-center gap-6 rounded-2xl bg-paper-alt p-6 md:col-span-2 md:grid-cols-2 md:gap-10 md:p-10"
           >
-            <a
-              href={post.link}
-              target="_blank"
-              rel="noreferrer"
-              className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border border-line bg-white p-6 text-center text-navy transition hover:border-navy"
-            >
-              <span className="font-semibold">{post.label ?? "View this post"}</span>
-              <span className="text-sm text-muted">View on Instagram →</span>
-            </a>
-          </blockquote>
-        </div>
-      ))}
+            <div>
+              {post.label && <p className="text-xs font-semibold uppercase tracking-widest text-gold">{post.label}</p>}
+              <p className="mt-3 text-lg leading-relaxed text-muted">{post.blurb}</p>
+            </div>
+            <PostEmbed post={post} />
+          </div>
+        ) : (
+          <div key={post.link} className="w-full max-w-[540px]">
+            {post.label && (
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gold">{post.label}</p>
+            )}
+            <PostEmbed post={post} />
+          </div>
+        ),
+      )}
+    </div>
+  );
+}
+
+function PostEmbed({ post }: { post: Post & { link: string } }) {
+  return (
+    <div className="w-full max-w-[540px] justify-self-center">
+      <blockquote
+        className="instagram-media"
+        data-instgrm-permalink={`${post.link}?utm_source=ig_embed`}
+        data-instgrm-version="14"
+        data-instgrm-captioned
+        style={{ margin: 0, minWidth: 0, width: "100%", maxWidth: 540 }}
+      >
+        <a
+          href={post.link}
+          target="_blank"
+          rel="noreferrer"
+          className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border border-line bg-white p-6 text-center text-navy transition hover:border-navy"
+        >
+          <span className="font-semibold">{post.label ?? "View this post"}</span>
+          <span className="text-sm text-muted">View on Instagram →</span>
+        </a>
+      </blockquote>
     </div>
   );
 }

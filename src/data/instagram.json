@@ -1,9 +1,25 @@
 {
-  "_help": "Instagram posts shown on the Media page, newest first. Paste the post's link (the ?img_index part is optional) and a short label. 3 to 6 posts is plenty.",
+  "_help": "Instagram posts shown on the Media page, two per row. Paste the post's link (the ?img_index part is optional) and a short label. Optional: a \"blurb\" gives a post its own full-width row with the text beside it.",
   "posts": [
     {
       "url": "https://www.instagram.com/p/Ddj1umsmZQh/",
       "label": "Brother Spotlights"
+    },
+    {
+      "url": "https://www.instagram.com/p/DdfCPcUmSjc/",
+      "label": "Interview Advice"
+    },
+    {
+      "url": "https://www.instagram.com/p/DVuiwAfkfBW/",
+      "label": "Family Puzzle Night"
+    },
+    {
+      "url": "https://www.instagram.com/p/DSNsJVUDxfH/",
+      "label": "Formal"
+    },
+    {
+      "url": "https://www.instagram.com/p/DRkYy6ckVRz/",
+      "label": "Retreat"
     }
   ]
 }
