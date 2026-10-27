@@ -15,11 +15,50 @@
   },
   "contactFormUrl": "",
   "nav": [
-    { "label": "About", "href": "/about" },
-    { "label": "Members", "href": "/members" },
-    { "label": "Media", "href": "/media" },
-    { "label": "Rush", "href": "/rush" },
-    { "label": "Sponsors", "href": "/sponsors" },
-    { "label": "Contact", "href": "/contact" }
+    {
+      "label": "About",
+      "href": "/about"
+    },
+    {
+      "label": "Members",
+      "href": "/members"
+    },
+    {
+      "label": "Media",
+      "href": "/media"
+    },
+    {
+      "label": "Rush",
+      "href": "/rush"
+    },
+    {
+      "label": "Sponsors",
+      "href": "/sponsors"
+    },
+    {
+      "label": "Contact",
+      "href": "/contact"
+    }
+  ],
+  "stats": [
+    {
+      "value": 500,
+      "suffix": "+",
+      "label": "Alumni in our directory"
+    },
+    {
+      "value": 12,
+      "label": "Committees run by brothers"
+    },
+    {
+      "value": 20,
+      "suffix": "+",
+      "label": "Languages spoken in the chapter"
+    },
+    {
+      "value": 2000,
+      "label": "Year Pi Omega was chartered",
+      "animate": false
+    }
   ]
 }

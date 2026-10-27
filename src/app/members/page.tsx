@@ -29,7 +29,7 @@ export default function MembersPage() {
       <Section id="committee-heads" title={`Committee heads · ${committeeHeads.term}`} tone="alt">
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {committeeHeads.committees.map((item) => (
-            <li key={item.committee} className="rounded-xl border border-line bg-white p-5">
+            <li key={item.committee} className="reveal rounded-xl border border-line bg-white p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0">
               <p className="text-xs font-semibold uppercase tracking-widest text-gold">{item.committee}</p>
               <p className="mt-2 font-medium text-ink">{item.heads.join(" & ")}</p>
             </li>

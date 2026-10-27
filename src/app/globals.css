@@ -57,3 +57,102 @@ body {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
+
+/* ------------------------------------------------------------------
+   Motion. Everything here is decoration: browsers without support, and
+   anyone with "reduce motion" turned on, get the same page without it.
+   ------------------------------------------------------------------ */
+
+/* Page transitions (src/app/template.tsx) */
+::view-transition {
+  pointer-events: none; /* clicks during a fade still land */
+}
+::view-transition-old(.page-out) {
+  animation: 120ms ease-in both vt-fade-out;
+}
+::view-transition-new(.page-in) {
+  animation: 240ms ease-out 60ms both vt-fade-in;
+}
+/* The header stays put while the page under it changes. */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
+/* Scroll reveal: add class="reveal" to fade an element up as it scrolls
+   into view. Pure CSS (scroll-driven animations), no JavaScript. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+/* Uses transform (not translate) so Tailwind's hover:-translate-* still composes. */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Scrolling strip (src/components/marquee.tsx) */
+.marquee-track {
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+}
+.marquee:hover .marquee-track,
+.marquee[data-paused="true"] .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    translate: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+  /* No motion: show the strip as a plain wrapped list instead. */
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+  }
+  .marquee-track [aria-hidden="true"] {
+    display: none;
+  }
+  .marquee > div {
+    mask-image: none;
+  }
+}

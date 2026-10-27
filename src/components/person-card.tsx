@@ -17,7 +17,7 @@ function initials(name: string) {
 
 export function PersonCard({ name, role, photo, linkedin }: PersonCardProps) {
   return (
-    <article className="overflow-hidden rounded-xl border border-line bg-white">
+    <article className="reveal overflow-hidden rounded-xl border border-line bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0">
       <div className="relative aspect-[4/5] bg-navy/5">
         {photo ? (
           <Image
