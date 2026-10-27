@@ -1,0 +1,9 @@
+{
+  "_help": "Instagram posts shown on the Media page, newest first. Paste the post's link (the ?img_index part is optional) and a short label. 3 to 6 posts is plenty.",
+  "posts": [
+    {
+      "url": "https://www.instagram.com/p/Ddj1umsmZQh/",
+      "label": "Brother Spotlights"
+    }
+  ]
+}
