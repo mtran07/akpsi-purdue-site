@@ -6,12 +6,13 @@ import {
   fetchAlumni,
   fetchBrothers,
   fetchEvents,
+  fetchMyPoints,
   fetchMyProfile,
   fetchResources,
   findMember,
   type ProfileResult,
 } from "@/lib/portal-data";
-import type { Alumnus, Brother, ChapterCalendar, Resource } from "@/lib/portal-types";
+import type { Alumnus, Brother, ChapterCalendar, MyPoints, Resource } from "@/lib/portal-types";
 
 /*
   Data access layer for the member portal. Every read of brother-only data
@@ -101,4 +102,10 @@ export async function getBrothersForMember(): Promise<Brother[]> {
 export async function getMyProfile(): Promise<ProfileResult> {
   const viewer = await requireMember();
   return fetchMyProfile(viewer.email, viewer.name);
+}
+
+/** The signed-in brother's own points. Only ever their row. */
+export async function getMyPoints(): Promise<MyPoints> {
+  const viewer = await requireMember();
+  return fetchMyPoints(viewer.email, viewer.name);
 }

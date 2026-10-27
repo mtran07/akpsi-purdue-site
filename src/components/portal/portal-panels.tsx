@@ -127,33 +127,21 @@ export function ResourceList({ resources }: { resources: Resource[] | null }) {
 
 export function PortalCallouts() {
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Callout
-        href="/portal/brothers"
-        eyebrow="Brother directory"
-        title="Emails, phone numbers and pledge classes of active brothers"
-      />
-      <Callout href="/portal/alumni" eyebrow="Alumni directory" title="Find Pi Omega alumni by company, major or class" />
-      <QuickLink href="/portal/profile" title="My profile" text="Update your major, phone, LinkedIn and pledge class" />
-      <QuickLink href="/portal/excuse" title="Excusal request" text="Can't make an event? Send it to the secretary" />
-    </div>
-  );
-}
-
-function QuickLink({ href, title, text }: { href: string; title: string; text: string }) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center justify-between gap-6 rounded-xl border border-line bg-white p-5 transition hover:border-navy"
-    >
-      <div>
-        <p className="font-semibold text-navy">{title}</p>
-        <p className="mt-0.5 text-sm text-muted">{text}</p>
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Callout
+          href="/portal/brothers"
+          eyebrow="Brother directory"
+          title="Emails, phone numbers and pledge classes of active brothers"
+        />
+        <Callout href="/portal/alumni" eyebrow="Alumni directory" title="Find Pi Omega alumni by company, major or class" />
       </div>
-      <span aria-hidden className="text-xl text-navy">
-        →
-      </span>
-    </Link>
+      <div className="grid gap-4 md:grid-cols-3">
+        <QuickLink href="/portal/points" title="My points" text="Your points, goal and chapter attendance" />
+        <QuickLink href="/portal/excuse" title="Excusal request" text="Can't make an event? Tell the secretary" />
+        <QuickLink href="/portal/profile" title="My profile" text="Update your major, phone and LinkedIn" />
+      </div>
+    </div>
   );
 }
 
@@ -176,4 +164,21 @@ function Callout({ href, eyebrow, title }: { href: string; eyebrow: string; titl
 
 export function PanelSkeleton() {
   return <div className="h-48 max-w-xl animate-pulse rounded-xl bg-paper-alt" aria-label="Loading" />;
+}
+
+function QuickLink({ href, title, text }: { href: string; title: string; text: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between gap-4 rounded-xl border border-line bg-white p-5 transition hover:border-navy"
+    >
+      <div>
+        <p className="font-semibold text-navy">{title}</p>
+        <p className="mt-0.5 text-sm text-muted">{text}</p>
+      </div>
+      <span aria-hidden className="text-xl text-navy">
+        →
+      </span>
+    </Link>
+  );
 }

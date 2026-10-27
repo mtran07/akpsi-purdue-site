@@ -59,3 +59,20 @@ export type Brother = {
   personalEmail?: string;
   phone?: string;
 };
+
+export type PointsStatus = "present" | "unexcused" | "excused" | "ooc-involvement" | "ooc-required";
+
+/** A brother's own row of the points table (see apps-script/portal.gs, readPoints_). */
+export type MyPoints =
+  | { configured: false }
+  | { configured: true; found: false; sheetName?: string }
+  | {
+      configured: true;
+      found: true;
+      sheetName?: string;
+      name: string;
+      total: number | null;
+      semesterGoal: number | null;
+      midSemesterGoal: number | null;
+      events: { name: string; date: string; points: number | null; status?: PointsStatus }[];
+    };

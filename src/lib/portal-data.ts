@@ -1,5 +1,5 @@
 import "server-only";
-import type { Alumnus, Brother, ChapterCalendar, Member, Resource } from "@/lib/portal-types";
+import type { Alumnus, Brother, ChapterCalendar, Member, MyPoints, Resource } from "@/lib/portal-types";
 
 /*
   Raw access to the portal's Google Sheet, through the Apps Script web app in
@@ -201,4 +201,19 @@ export async function fetchBrothers(): Promise<Brother[]> {
  */
 export async function fetchPublicRoster(): Promise<Brother[]> {
   return callScript<Brother[]>("roster");
+}
+
+/** A brother's own points and attendance from the points table. Never cached. */
+export async function fetchMyPoints(email: string, name: string): Promise<MyPoints> {
+  return postScript<MyPoints>("points", { email, name });
+}
+
+/** Public contact form: emailed to the chapter (reply-to the sender) and logged. */
+export async function sendContactMessage(message: {
+  name: string;
+  email: string;
+  topic: string;
+  message: string;
+}): Promise<void> {
+  await postScript<{ sent: boolean }>("contact", message);
 }

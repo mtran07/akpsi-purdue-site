@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import site from "@/data/site.json";
 import { PageHeader, Section } from "@/components/page-header";
+import { ContactForm } from "@/components/contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Questions about joining or sponsoring Alpha Kappa Psi at Purdue? Get in touch.",
+  description: "Questions about joining, sponsoring or reconnecting with Alpha Kappa Psi at Purdue? Get in touch.",
 };
 
 export default function ContactPage() {
@@ -13,28 +14,38 @@ export default function ContactPage() {
       <PageHeader
         eyebrow="Contact"
         title="Get in touch"
-        intro="Interested in sponsoring our chapter or have questions about joining? Send us a note."
+        intro="Thinking about rushing, interested in sponsoring the chapter, or an alum reconnecting? Send us a note."
       />
 
       <Section>
-        {site.contactFormUrl ? (
-          <iframe
-            src={site.contactFormUrl}
-            title="Contact form"
-            className="h-[900px] w-full rounded-xl border border-line"
-          />
-        ) : (
-          // TODO (Contact task in docs/TASKS.md): create the form in Google Forms or Tally
-          // under the chapter tech account, then paste its embed URL into src/data/site.json.
-          <div className="rounded-xl border border-dashed border-line bg-paper-alt p-10 text-center text-muted">
-            Contact form coming soon. In the meantime, message us on{" "}
-            <a href={site.social.instagram} target="_blank" rel="noreferrer" className="font-medium text-navy underline">
-              Instagram
-            </a>
-            .
-          </div>
-        )}
-        <p className="mt-6 text-sm text-muted">{site.address}</p>
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <ContactForm />
+          <aside className="space-y-6 text-sm">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gold">Follow along</p>
+              <ul className="mt-3 space-y-2">
+                <li>
+                  <a href={site.social.instagram} target="_blank" rel="noreferrer" className="font-medium text-navy underline underline-offset-4">
+                    Instagram
+                  </a>
+                  <span className="text-muted">: rush updates and event recaps</span>
+                </li>
+                {site.social.linkedin && (
+                  <li>
+                    <a href={site.social.linkedin} target="_blank" rel="noreferrer" className="font-medium text-navy underline underline-offset-4">
+                      LinkedIn
+                    </a>
+                    <span className="text-muted">: chapter news and alumni</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gold">Where we are</p>
+              <p className="mt-3 text-muted">{site.address}</p>
+            </div>
+          </aside>
+        </div>
       </Section>
     </>
   );
