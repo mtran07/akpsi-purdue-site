@@ -18,6 +18,9 @@
  *   ?action=alumni     alumni directory rows (phone numbers are never returned)
  *   ?action=resources  brother-only links from the "Resources" tab
  *   ?action=columns    setup check: which alumni columns were recognized
+ *   ?action=events     upcoming events from the chapter Google Calendar
+ *                      (script property CALENDAR_ID; the account that owns
+ *                      this script must be able to see that calendar)
  *
  * And one POST, sent by the website when someone signed in with a Google
  * account that isn't on the Members tab types their full name
@@ -82,6 +85,8 @@ function doGet(e) {
         return json_({ ok: true, data: readResources_(readTable_(spreadsheet, RESOURCES_TAB)) });
       case 'columns':
         return json_({ ok: true, data: describeColumns_(readTable_(spreadsheet, alumniTab).headers) });
+      case 'events':
+        return json_({ ok: true, data: readEvents_(props.getProperty('CALENDAR_ID')) });
       default:
         return json_({ ok: false, error: 'unknown action' });
     }
@@ -388,6 +393,49 @@ function readTable_(spreadsheet, tabName) {
   if (!sheet) throw new Error('No tab named "' + tabName + '"');
   var values = sheet.getDataRange().getDisplayValues();
   return { headers: values[0] || [], rows: values.slice(1) };
+}
+
+var EVENT_DAYS_AHEAD = 60;
+var MAX_EVENTS = 30;
+
+/** The next EVENT_DAYS_AHEAD days of the chapter calendar. No calendar set → no events. */
+function readEvents_(calendarId) {
+  if (!calendarId) return { calendarId: '', events: [] };
+  var calendar = CalendarApp.getCalendarById(calendarId);
+  if (!calendar) throw new Error('Calendar not found, or this script\'s account can\'t see it');
+
+  var now = new Date();
+  var until = new Date(now.getTime() + EVENT_DAYS_AHEAD * 24 * 60 * 60 * 1000);
+  var events = calendar.getEvents(now, until).slice(0, MAX_EVENTS).map(function (event) {
+    var allDay = event.isAllDayEvent();
+    var item = {
+      id: event.getId() + '|' + event.getStartTime().getTime(), // recurring events share an id
+      title: String(event.getTitle() || 'Untitled event').slice(0, 200),
+      allDay: allDay,
+      // All-day dates as plain YYYY-MM-DD so time zones can't shift them a day.
+      start: allDay ? Utilities.formatDate(event.getAllDayStartDate(), calendar.getTimeZone(), 'yyyy-MM-dd') : event.getStartTime().toISOString(),
+      end: allDay ? Utilities.formatDate(event.getAllDayEndDate(), calendar.getTimeZone(), 'yyyy-MM-dd') : event.getEndTime().toISOString()
+    };
+    var location = String(event.getLocation() || '').trim();
+    if (location) item.location = location.slice(0, 200);
+    var description = plainText_(event.getDescription());
+    if (description) item.description = description.slice(0, 600);
+    return item;
+  });
+  return { calendarId: calendarId, events: events };
+}
+
+/** Calendar descriptions are often HTML. Keep the words and line breaks only. */
+function plainText_(html) {
+  return String(html || '')
+    .replace(/<br\s*\/?>|<\/p>|<\/div>|<\/li>/gi, '\n')
+    .replace(/<a\s[^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, function (_, href, text) {
+      return text && text !== href ? text + ' (' + href + ')' : href;
+    })
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function notify_(recipients, request, note, sheetUrl) {

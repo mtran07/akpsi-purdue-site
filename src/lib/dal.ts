@@ -2,8 +2,8 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { fetchAlumni, fetchResources, findMember } from "@/lib/portal-data";
-import type { Alumnus, Resource } from "@/lib/portal-types";
+import { fetchAlumni, fetchEvents, fetchResources, findMember } from "@/lib/portal-data";
+import type { Alumnus, ChapterCalendar, Resource } from "@/lib/portal-types";
 
 /*
   Data access layer for the member portal. Every read of brother-only data
@@ -57,6 +57,20 @@ export async function getResourcesForMember(): Promise<Resource[] | null> {
     return await fetchResources();
   } catch (error) {
     console.error("Couldn't load portal resources", error);
+    return null;
+  }
+}
+
+/**
+ * Upcoming chapter events, or null if the calendar couldn't be loaded. Like
+ * resources, a calendar problem only hides that section.
+ */
+export async function getEventsForMember(): Promise<ChapterCalendar | null> {
+  await requireMember();
+  try {
+    return await fetchEvents();
+  } catch (error) {
+    console.error("Couldn't load chapter calendar", error);
     return null;
   }
 }

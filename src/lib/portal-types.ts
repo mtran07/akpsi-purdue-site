@@ -28,3 +28,20 @@ export type Resource = {
   description?: string;
   category?: string;
 };
+
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  allDay: boolean;
+  /** ISO timestamp, or YYYY-MM-DD for all-day events. */
+  start: string;
+  /** ISO timestamp, or YYYY-MM-DD (exclusive, Google's convention) for all-day events. */
+  end: string;
+  location?: string;
+  description?: string;
+};
+
+export type ChapterCalendar = {
+  calendarId: string;
+  events: CalendarEvent[];
+};

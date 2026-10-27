@@ -71,6 +71,20 @@ headers, spelled as below (capitalization doesn't matter):
 - Linking a Drive file doesn't share it. Make sure the file itself is shared with the
   chapter, too.
 
+**Chapter calendar** (optional): upcoming events on the portal home page
+
+- In the Apps Script, add the script property `CALENDAR_ID`. Find it in Google Calendar:
+  the calendar's ⋮ → Settings and sharing → Integrate calendar → Calendar ID (ends in
+  `@group.calendar.google.com`).
+- The Google account that owns the Apps Script must be able to see that calendar. The
+  calendar does **not** need to be public: the script reads it, and brothers only see
+  the events after signing in.
+- The portal shows the next 60 days (up to 30 events), with times in Eastern time.
+- The **Add to my Google Calendar** button only works for brothers the calendar is
+  shared with. To let every brother subscribe, share it with them in Settings and
+  sharing → Share with specific people (see all event details), or make it public.
+- The first deploy after setting this asks you to allow the script to read your calendars.
+
 **Alumni tab**: leave it as it is (currently `Sheet4`). The script recognizes the
 current headers (First Name, Last Name, LinkedIn, Graduation Year, Major, Current
 Position, Company, Email, Sector, Location, Prev. Companies) and common variants.

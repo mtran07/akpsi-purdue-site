@@ -10,7 +10,8 @@ import {
   SignInPanel,
   SignOutButton,
 } from "@/components/portal/portal-panels";
-import { getResourcesForMember, getViewer } from "@/lib/dal";
+import { UpcomingEvents } from "@/components/portal/upcoming-events";
+import { getEventsForMember, getResourcesForMember, getViewer } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 
 export default function PortalPage(props: PageProps<"/portal">) {
@@ -52,6 +53,15 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
       <AlumniCallout />
 
       <div>
+        <h2 className="font-display text-2xl font-bold text-navy">Upcoming events</h2>
+        <div className="mt-6">
+          <Suspense fallback={<PanelSkeleton />}>
+            <Events />
+          </Suspense>
+        </div>
+      </div>
+
+      <div>
         <h2 className="font-display text-2xl font-bold text-navy">Brother resources</h2>
         <div className="mt-6">
           <Suspense fallback={<PanelSkeleton />}>
@@ -61,6 +71,11 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
       </div>
     </div>
   );
+}
+
+async function Events() {
+  const calendar = await getEventsForMember();
+  return <UpcomingEvents calendar={calendar} />;
 }
 
 async function Resources() {
