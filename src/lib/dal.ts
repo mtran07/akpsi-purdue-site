@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import {
@@ -9,17 +10,16 @@ import {
   fetchMyPoints,
   fetchMyProfile,
   fetchResources,
-  findMember,
   type ProfileResult,
 } from "@/lib/portal-data";
 import type { Alumnus, Brother, ChapterCalendar, MyPoints, Resource } from "@/lib/portal-types";
 
 /*
   Data access layer for the member portal. Every read of brother-only data
-  goes through here, and every function re-checks membership against the
-  sheet. Being signed in is not enough: the email must still be on the
-  Members tab, so removing someone takes effect within a minute, even
-  mid-session.
+  goes through here, and every function checks membership. Being signed in
+  is not enough: the email must be on the Members tab. That answer lives in
+  the signed session and is re-checked every 5 minutes (src/auth.ts), so
+  removing someone takes effect within 5 minutes, even mid-session.
 */
 
 export type Viewer =
@@ -33,7 +33,7 @@ export const getViewer = cache(async (): Promise<Viewer> => {
   const email = session?.user?.email?.trim().toLowerCase();
   if (!email) return { status: "signed-out" };
 
-  const member = await findMember(email);
+  const member = session?.member;
   if (!member) return { status: "not-member", email, name: session?.user?.name ?? "" };
 
   return {
@@ -108,4 +108,23 @@ export async function getMyProfile(): Promise<ProfileResult> {
 export async function getMyPoints(): Promise<MyPoints> {
   const viewer = await requireMember();
   return fetchMyPoints(viewer.email, viewer.name);
+}
+
+/**
+ * Called from the portal home: quietly load what the other portal pages
+ * need, so the next click doesn't wait on the sheet.
+ * Only ever for the signed-in member's own data.
+ */
+export async function warmPortal() {
+  const viewer = await getViewer();
+  if (viewer.status !== "member") return;
+  // Start now (in parallel with the rest of the page), and keep the server
+  // alive until it's done with after().
+  const loading = Promise.allSettled([
+    fetchBrothers(),
+    fetchAlumni(),
+    fetchMyPoints(viewer.email, viewer.name),
+    fetchMyProfile(viewer.email, viewer.name),
+  ]);
+  after(() => loading);
 }

@@ -120,15 +120,35 @@ export type ProfileResult =
   | { found: false }
   | { found: true; saved?: boolean; error?: string; profile: Brother & { show: boolean } };
 
-/** A brother's own Roster row, found by email (then name). Never cached. */
+/*
+  Per-brother answers (profile, points), kept for PERSONAL_TTL_MS in this
+  server's memory, keyed by the signed-in email. Each entry is only ever
+  handed back for that same email (the DAL passes the viewer's own).
+*/
+const PERSONAL_TTL_MS = 2 * 60_000;
+const personalCache = new Map<string, { at: number; data: Promise<unknown> }>();
+
+function personal<T>(kind: string, email: string, load: () => Promise<T>): Promise<T> {
+  const key = `${kind}:${email.trim().toLowerCase()}`;
+  const hit = personalCache.get(key);
+  if (hit && Date.now() - hit.at < PERSONAL_TTL_MS) return hit.data as Promise<T>;
+  const data = load();
+  personalCache.set(key, { at: Date.now(), data });
+  data.catch(() => personalCache.delete(key)); // never keep a failure
+  if (personalCache.size > 500) personalCache.delete(personalCache.keys().next().value!);
+  return data;
+}
+
+/** A brother's own Roster row, found by email (then name). Cached briefly. */
 export async function fetchMyProfile(email: string, name: string): Promise<ProfileResult> {
-  return postScript<ProfileResult>("profile", { email, name });
+  return personal("profile", email, () => postScript<ProfileResult>("profile", { email, name }));
 }
 
 /** Saves a brother's own edits. The script re-checks which fields may change. */
 export async function saveMyProfile(email: string, name: string, updates: Record<string, string | boolean>) {
   const result = await postScript<ProfileResult>("profile", { email, name, updates });
   contentCache.delete("brothers"); // show the change in the directory right away
+  personalCache.set(`profile:${email.trim().toLowerCase()}`, { at: Date.now(), data: Promise.resolve(result) });
   return result;
 }
 
@@ -203,9 +223,9 @@ export async function fetchPublicRoster(): Promise<Brother[]> {
   return callScript<Brother[]>("roster");
 }
 
-/** A brother's own points and attendance from the points table. Never cached. */
+/** A brother's own points and attendance from the points table. Cached briefly. */
 export async function fetchMyPoints(email: string, name: string): Promise<MyPoints> {
-  return postScript<MyPoints>("points", { email, name });
+  return personal("points", email, () => postScript<MyPoints>("points", { email, name }));
 }
 
 /** Public contact form: emailed to the chapter (reply-to the sender) and logged. */

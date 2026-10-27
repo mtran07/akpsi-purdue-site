@@ -11,7 +11,7 @@ import {
   SignOutButton,
 } from "@/components/portal/portal-panels";
 import { UpcomingEvents } from "@/components/portal/upcoming-events";
-import { getEventsForMember, getResourcesForMember, getViewer } from "@/lib/dal";
+import { getEventsForMember, getResourcesForMember, getViewer, warmPortal } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 
 export default function PortalPage(props: PageProps<"/portal">) {
@@ -40,6 +40,8 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
     return <SignInPanel error={typeof error === "string" ? error : undefined} />;
   }
   if (viewer.status === "not-member") return <NotMemberPanel email={viewer.email} name={viewer.name} />;
+
+  await warmPortal();
 
   return (
     <div className="space-y-10">
