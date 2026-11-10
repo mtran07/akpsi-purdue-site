@@ -16,9 +16,14 @@ export const metadata: Metadata = {
   },
   description:
     "Alpha Kappa Psi, Pi Omega Chapter: Purdue University's gender-inclusive professional business fraternity, open to all majors.",
+  // Link previews: the image comes from src/app/opengraph-image.tsx.
   openGraph: {
     siteName: "AKPsi Purdue",
     type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
   },
 };
 
