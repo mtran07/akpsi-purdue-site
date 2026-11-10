@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Suspense } from "react";
 import execBoard from "@/data/exec-board.json";
 import committeeHeads from "@/data/committee-heads.json";
@@ -30,11 +31,27 @@ export default function MembersPage() {
       </Section>
 
       <Section id="committee-heads" title={`Committee heads · ${committeeHeads.term}`} tone="alt">
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {committeeHeads.committees.map((item) => (
-            <li key={item.committee} className="reveal rounded-xl border border-line bg-white p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gold">{item.committee}</p>
-              <p className="mt-2 font-medium text-ink">{item.heads.join(" & ")}</p>
+            <li
+              key={item.committee}
+              className="reveal overflow-hidden rounded-xl border border-line bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0"
+            >
+              {item.photo && (
+                <div className="relative aspect-[4/5] bg-navy/5">
+                  <Image
+                    src={item.photo}
+                    alt={`${item.committee} committee: ${item.heads.join(" and ")}`}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <div className="p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold">{item.committee}</p>
+                <p className="mt-1.5 font-medium text-ink">{item.heads.join(", ")}</p>
+              </div>
             </li>
           ))}
         </ul>
