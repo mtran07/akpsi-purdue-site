@@ -10,6 +10,7 @@
     {
       "name": "Venya Bhardwaj",
       "role": "Executive Vice President",
+      "linkedin": "https://www.linkedin.com/in/venya-bhardwaj-609a6722a/",
       "photo": "/images/exec/venya-bhardwaj.jpg"
     },
     {
@@ -21,11 +22,13 @@
     {
       "name": "Sid Kamble",
       "role": "Vice President of Professional Development",
+      "linkedin": "https://www.linkedin.com/in/siddharth-kamble/",
       "photo": "/images/exec/sid-kamble.jpg"
     },
     {
       "name": "Jake Futterman",
       "role": "Vice President of Finance",
+      "linkedin": "https://www.linkedin.com/in/jakefutterman/",
       "photo": "/images/exec/jake-futterman.jpg"
     },
     {
@@ -43,16 +46,19 @@
     {
       "name": "Aarya Iyer",
       "role": "Master of Rituals",
+      "linkedin": "https://www.linkedin.com/in/iaarya06/",
       "photo": "/images/exec/aarya-iyer.jpg"
     },
     {
       "name": "Meghana Namineni",
       "role": "Secretary",
+      "linkedin": "https://www.linkedin.com/in/meghana-namineni-36230a348/",
       "photo": "/images/exec/meghana-namineni.jpg"
     },
     {
       "name": "Kylie Hynes",
       "role": "Chaplain",
+      "linkedin": "https://www.linkedin.com/in/kylie-hynes12345/",
       "photo": "/images/exec/kylie-hynes.jpg"
     }
   ]
