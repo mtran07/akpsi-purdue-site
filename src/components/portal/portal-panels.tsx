@@ -143,6 +143,9 @@ export function PortalCallouts({ officerPosition }: { officerPosition?: string |
           </span>
         </Link>
       )}
+      {officerPosition !== undefined && officerPosition !== null && (
+        <QuickLink href="/portal/exec/check-in" title="Chapter check-in" text="Show the QR code at chapter and apply attendance to points" />
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <Callout
           href="/portal/brothers"

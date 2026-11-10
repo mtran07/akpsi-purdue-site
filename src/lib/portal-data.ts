@@ -1,5 +1,17 @@
 import "server-only";
-import type { Alumnus, Brother, ChapterCalendar, ExecDashboard, Member, MyPoints, Officer, Resource } from "@/lib/portal-types";
+import type {
+  Alumnus,
+  Brother,
+  ChapterCalendar,
+  CheckinAddResult,
+  CheckinApplyResult,
+  CheckinState,
+  ExecDashboard,
+  Member,
+  MyPoints,
+  Officer,
+  Resource,
+} from "@/lib/portal-types";
 
 /*
   Raw access to the portal's Google Sheet, through the Apps Script web app in
@@ -257,4 +269,66 @@ export async function fetchDashboard(email: string): Promise<ExecDashboard> {
   dashboardCache = { at: Date.now(), data };
   data.catch(() => (dashboardCache = null));
   return data;
+}
+
+/* ---------------- Chapter check-in ---------------- */
+
+// The session changes rarely and is read on every scan, so it's kept for a few
+// seconds; anything that changes it clears this right away.
+const CHECKIN_TTL_MS = 4_000;
+let checkinCache: { at: number; data: Promise<CheckinState> } | null = null;
+
+export async function fetchCheckinState(): Promise<CheckinState> {
+  if (checkinCache && Date.now() - checkinCache.at < CHECKIN_TTL_MS) return checkinCache.data;
+  const data = postScript<CheckinState>("checkin-state", {});
+  checkinCache = { at: Date.now(), data };
+  data.catch(() => (checkinCache = null));
+  return data;
+}
+
+function freshState(data: CheckinState) {
+  checkinCache = { at: Date.now(), data: Promise.resolve(data) };
+  return data;
+}
+
+export async function startCheckinSession(
+  officerEmail: string,
+  options: { event: string; minutes: number; geo: { lat: number; lng: number; radius: number } | null },
+) {
+  return freshState(await postScript<CheckinState>("checkin-start", { email: officerEmail, ...options }));
+}
+
+export async function closeCheckinSession(officerEmail: string) {
+  return freshState(await postScript<CheckinState>("checkin-close", { email: officerEmail }));
+}
+
+/** A brother's own check-in (the caller has already verified their code and location). */
+export async function addCheckin(sessionId: string, email: string, name: string): Promise<CheckinAddResult> {
+  const result = await postScript<CheckinAddResult>("checkin-add", { sessionId, email, name, method: "scan" });
+  checkinCache = null;
+  return result;
+}
+
+export async function addCheckinByHand(sessionId: string, officerEmail: string, email: string, name: string) {
+  const result = await postScript<CheckinAddResult>("checkin-add", {
+    sessionId,
+    email,
+    name,
+    method: "manual",
+    officerEmail,
+  });
+  checkinCache = null;
+  return result;
+}
+
+export async function removeCheckin(sessionId: string, officerEmail: string, email: string, name: string) {
+  return freshState(await postScript<CheckinState>("checkin-remove", { sessionId, officerEmail, email, name }));
+}
+
+export async function fetchPointsColumns(officerEmail: string) {
+  return postScript<{ columns: { col: number; name: string; date: string }[] }>("checkin-columns", { email: officerEmail });
+}
+
+export async function applyCheckinSession(officerEmail: string, sessionId: string, col: number, markRest: boolean) {
+  return postScript<CheckinApplyResult>("checkin-apply", { email: officerEmail, sessionId, col, markRest });
 }

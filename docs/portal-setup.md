@@ -240,6 +240,23 @@ anyone can read both with View Source. Once the portal works:
 
 ---
 
+## Chapter check-in (QR)
+
+Officers open **Portal → Chapter check-in** (also linked from the exec dashboard) at the start of chapter:
+
+1. **Start check-in.** Pick how long it stays open (15 minutes by default). Tick **Location check** only if you are starting it from the meeting room; brothers then have to be within about 300 m of that spot.
+2. **Full screen for the projector.** The QR code changes every 30 seconds, so a photo of it texted to someone at home stops working within a minute.
+3. Brothers scan it with their phone camera, sign in if needed, and tap **Check me in**. The list on your screen updates every few seconds.
+4. **Add someone by hand** for a dead phone or a late arrival; **Remove** anyone who shouldn't be there.
+5. **Apply to the points table.** Choose the event column (today's Chapter column is picked for you). Checked-in brothers turn Present. Cells already marked Excused or Out of Chapter are never changed. Tick **Mark everyone else Unexcused** only if you want blank cells filled in too; otherwise do that part yourself as usual.
+
+What you need:
+
+- The latest `apps-script/portal.gs` pasted in and deployed as a **new version** (Deploy → Manage deployments → edit → Version: New version). The URL stays the same.
+- The Google account that owns the Apps Script needs **edit** access to the points spreadsheet (POINTS_SHEET_ID), since applying colors cells there.
+- A **Check-ins** tab is created in the portal sheet automatically. It is the permanent log (session, name, email, time, scan or by hand, removed).
+- Only people on the **Officers** tab can start, close, edit or apply a check-in.
+
 ## Speed
 
 Every call to the Apps Script takes a second or more, so the portal avoids making them
