@@ -8,25 +8,26 @@ export function SiteHeader() {
       style={{ viewTransitionName: "site-header" }}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-baseline gap-2">
+        <Link href="/" aria-label="AKPsi Purdue home" className="flex items-baseline gap-2">
           <span className="font-display text-xl font-bold text-gold">{site.chapterShort}</span>
-          <span className="text-sm font-medium tracking-wide">Purdue · Pi Omega</span>
+          {/* Hidden at tablet width only, where the full menu needs the room. */}
+          <span className="whitespace-nowrap text-sm font-medium tracking-wide md:hidden lg:inline">Purdue · Pi Omega</span>
         </Link>
 
         {/* Desktop navigation */}
-        <nav aria-label="Main" className="hidden items-center gap-6 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-4 md:flex lg:gap-6">
           {site.nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm text-white/85 transition-colors hover:text-gold"
+              className="whitespace-nowrap text-sm text-white/85 transition-colors hover:text-gold"
             >
               {item.label}
             </Link>
           ))}
           <Link
             href="/portal"
-            className="rounded-full border border-gold px-4 py-1.5 text-sm font-medium text-gold transition-colors hover:bg-gold hover:text-navy"
+            className="whitespace-nowrap rounded-full border border-gold px-4 py-1.5 text-sm font-medium text-gold transition-colors hover:bg-gold hover:text-navy"
           >
             Sign in
           </Link>
