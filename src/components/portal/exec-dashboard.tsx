@@ -96,6 +96,17 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
         {officer.position && <> · {officer.position}</>}
       </p>
 
+      <a
+        href="/portal/exec/check-in"
+        className="flex items-center justify-between gap-6 rounded-xl bg-navy p-5 text-white transition hover:bg-navy-deep"
+      >
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Chapter check-in</p>
+          <p className="mt-1 font-display text-xl font-bold">Start the QR check-in for chapter</p>
+        </div>
+        <span aria-hidden className="text-2xl text-gold">→</span>
+      </a>
+
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Tile label="Portal access" value={String(data.members.activeEmails)} hint="active emails on Members" />
         <Tile label="Waiting for approval" value={String(pending.length)} hint={pending.length ? "access requests" : "all caught up"} />

@@ -41,6 +41,10 @@
  *   action=contact     public contact form: emails CONTACT_EMAIL (reply-to the
  *                      sender, who is never emailed) and logs it on a Contact tab
  *   action=dashboard   exec dashboard data (only for an email on the Officers tab)
+ *   action=checkin-*   chapter check-in: the website runs the rotating QR code and
+ *                      checks officers; this keeps the session (script property
+ *                      CHECKIN_SESSION) and the Check-ins tab, and applies them to
+ *                      the points table (see "Chapter check-in" below)
  *   action=excuse      emails an excusal request (with an optional proof photo)
  *                      to SECRETARY_EMAIL and logs it on the Excusals tab
  *
@@ -143,6 +147,13 @@ function doPost(e) {
       case 'points': return handlePoints_(body, props);
       case 'contact': return handleContact_(body, props);
       case 'dashboard': return handleDashboard_(body, props);
+      case 'checkin-state': return json_({ ok: true, data: checkinState_(props) });
+      case 'checkin-start': return handleCheckinStart_(body, props);
+      case 'checkin-close': return handleCheckinClose_(body, props);
+      case 'checkin-add': return handleCheckinAdd_(body, props);
+      case 'checkin-remove': return handleCheckinRemove_(body, props);
+      case 'checkin-columns': return handleCheckinColumns_(body, props);
+      case 'checkin-apply': return handleCheckinApply_(body, props);
       default: return json_({ ok: false, error: 'unknown action' });
     }
   } catch (err) {
@@ -474,26 +485,32 @@ function pointsNumber_(v) {
   return isNaN(n) ? null : n;
 }
 
+/** A brother's row in the points table: by email first, then one exact name, then one close name. -1 if none. */
+function matchPointsRow_(values, layout, emails, names) {
+  var wantedEmails = emails.filter(Boolean).map(function (e) { return String(e).toLowerCase(); });
+  var cleanNames = names.filter(Boolean);
+  var wantedNames = cleanNames.map(function (n) { return nameTokens_(n).join(' '); });
+  var match = -1, exact = [], loose = [];
+  for (var r = layout.headerRow + 1; r < values.length; r++) {
+    var rowName = String(values[r][layout.nameCol] || '').trim();
+    if (!rowName) continue;
+    var rowEmail = layout.emailCol >= 0 ? String(values[r][layout.emailCol] || '').trim().toLowerCase() : '';
+    if (rowEmail && wantedEmails.indexOf(rowEmail) !== -1) { match = r; break; }
+    if (wantedNames.indexOf(nameTokens_(rowName).join(' ')) !== -1) exact.push(r);
+    else if (cleanNames.some(function (n) { return namesMatch_(n, rowName); })) loose.push(r);
+  }
+  if (match < 0 && exact.length === 1) match = exact[0];
+  if (match < 0 && exact.length === 0 && loose.length === 1) match = loose[0];
+  return match;
+}
+
 function readPoints_(values, colors, emails, names) {
   var layout = pointsLayout_(values, colors);
   var header = { row: layout.headerRow }, nameCol = layout.nameCol, emailCol = layout.emailCol;
   var totalCol = layout.totalCol, goalCol = layout.goalCol, midCol = layout.midCol;
   var keyColors = layout.keyColors, events = layout.events;
 
-  // Their row: by email first, then one exact name, then one close name.
-  var wantedEmails = emails.map(function (e) { return e.toLowerCase(); });
-  var wantedNames = names.map(function (n) { return nameTokens_(n).join(' '); });
-  var match = -1, exact = [], loose = [];
-  for (var r = header.row + 1; r < values.length; r++) {
-    var rowName = String(values[r][nameCol] || '').trim();
-    if (!rowName) continue;
-    var rowEmail = emailCol >= 0 ? String(values[r][emailCol] || '').trim().toLowerCase() : '';
-    if (rowEmail && wantedEmails.indexOf(rowEmail) !== -1) { match = r; break; }
-    if (wantedNames.indexOf(nameTokens_(rowName).join(' ')) !== -1) exact.push(r);
-    else if (names.some(function (n) { return namesMatch_(n, rowName); })) loose.push(r);
-  }
-  if (match < 0 && exact.length === 1) match = exact[0];
-  if (match < 0 && exact.length === 0 && loose.length === 1) match = loose[0];
+  var match = matchPointsRow_(values, layout, emails, names);
   if (match < 0) return { found: false };
 
   var num = pointsNumber_;
@@ -669,6 +686,246 @@ function summarizePoints_(values, colors) {
     behind: behind,
     meetings: meetings
   };
+}
+
+/* ---------------- Chapter check-in ---------------- */
+
+/*
+  One check-in session at a time, kept in the script property CHECKIN_SESSION:
+  { id, event, date, openedAt, closesAt, closed, geo: { lat, lng, radius } | null, startedBy }.
+  Every check-in is a row on the Check-ins tab. Nothing touches the points
+  table until an officer applies a session, and applying never changes a
+  cell already colored Excused or Out of Chapter.
+*/
+var CHECKINS_TAB = 'Check-ins';
+var CHECKIN_HEADERS = ['Session', 'Event', 'Date', 'Name', 'Email', 'Checked in', 'Method', 'Removed'];
+
+function getCheckinSession_(props) {
+  var raw = props.getProperty('CHECKIN_SESSION');
+  try { return raw ? JSON.parse(raw) : null; } catch (err) { return null; }
+}
+
+function checkinsSheet_(props) {
+  var spreadsheet = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+  var sheet = spreadsheet.getSheetByName(CHECKINS_TAB);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(CHECKINS_TAB);
+    sheet.appendRow(CHECKIN_HEADERS);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+/** Check-ins for one session (removed ones left out), oldest first. Cached until something changes. */
+function checkinList_(props, sessionId) {
+  if (!sessionId) return [];
+  return cached_('checkins-' + sessionId, 600, function () {
+    var values = checkinsSheet_(props).getDataRange().getValues();
+    var out = [];
+    for (var i = 1; i < values.length; i++) {
+      var r = values[i];
+      if (String(r[0]) !== sessionId || String(r[7]).toLowerCase() === 'yes') continue;
+      out.push({ name: String(r[3]), email: String(r[4]).toLowerCase(), at: new Date(r[5]).getTime(), method: String(r[6]) });
+    }
+    return out;
+  });
+}
+
+function checkinState_(props) {
+  var session = getCheckinSession_(props);
+  return { session: session, checkins: session ? checkinList_(props, session.id) : [] };
+}
+
+function requireOfficer_(props, email) {
+  var spreadsheet = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+  var officers = cached_('officers-list', 300, function () {
+    return spreadsheet.getSheetByName(OFFICERS_TAB) ? readOfficers_(readTable_(spreadsheet, OFFICERS_TAB)) : [];
+  });
+  var me = String(email || '').trim().toLowerCase();
+  if (!officers.some(function (o) { return o.email === me; })) throw new Error('not an officer');
+}
+
+function handleCheckinStart_(body, props) {
+  requireOfficer_(props, body.email);
+  var minutes = Math.max(5, Math.min(120, Number(body.minutes) || 15));
+  var now = Date.now();
+  var geo = null;
+  if (body.geo && isFinite(body.geo.lat) && isFinite(body.geo.lng)) {
+    geo = { lat: Number(body.geo.lat), lng: Number(body.geo.lng), radius: Math.max(100, Math.min(2000, Number(body.geo.radius) || 300)) };
+  }
+  var session = {
+    id: Utilities.getUuid().slice(0, 13),
+    event: clean_(body.event, 80) || 'Chapter',
+    date: Utilities.formatDate(new Date(now), 'America/Indianapolis', 'EEE, MMM d'),
+    openedAt: now,
+    closesAt: now + minutes * 60 * 1000,
+    closed: false,
+    geo: geo,
+    startedBy: clean_(body.email, 200).toLowerCase()
+  };
+  props.setProperty('CHECKIN_SESSION', JSON.stringify(session));
+  return json_({ ok: true, data: checkinState_(props) });
+}
+
+function handleCheckinClose_(body, props) {
+  requireOfficer_(props, body.email);
+  var session = getCheckinSession_(props);
+  if (session && !session.closed) {
+    session.closed = true;
+    session.closesAt = Math.min(session.closesAt, Date.now());
+    props.setProperty('CHECKIN_SESSION', JSON.stringify(session));
+  }
+  return json_({ ok: true, data: checkinState_(props) });
+}
+
+/**
+ * Adds a check-in. The website has already checked the rotating code (and
+ * location) for a brother's own scan; an officer adding someone by hand is
+ * checked here. Re-checks the window and ignores duplicates.
+ */
+function handleCheckinAdd_(body, props) {
+  var manual = body.method === 'manual';
+  if (manual) requireOfficer_(props, body.officerEmail);
+  var email = clean_(body.email, 200).toLowerCase();
+  var name = clean_(body.name, 100);
+  if (!name || (!manual && !email)) return json_({ ok: false, error: 'bad request' });
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return json_({ ok: false, error: 'busy, try again' });
+  try {
+    var session = getCheckinSession_(props);
+    if (!session || session.id !== body.sessionId) return json_({ ok: true, data: { result: 'no-session' } });
+    // A brother's own scan must be inside the window; an officer may add late arrivals any time.
+    if (!manual && (session.closed || Date.now() > session.closesAt)) return json_({ ok: true, data: { result: 'closed' } });
+    var list = checkinList_(props, session.id);
+    var dupe = list.filter(function (c) { return (email && c.email === email) || c.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (dupe) return json_({ ok: true, data: { result: 'already', at: dupe.at } });
+    var at = new Date();
+    var row = [session.id, session.event, session.date, name, email, at, manual ? 'Added by ' + clean_(body.officerEmail, 200) : 'Scan', ''];
+    checkinsSheet_(props).appendRow(row.map(function (v) { return typeof v === 'string' && /^[=+\-@]/.test(v) ? "'" + v : v; }));
+    CacheService.getScriptCache().remove('checkins-' + session.id);
+    return json_({ ok: true, data: { result: 'checked-in', at: at.getTime() } });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleCheckinRemove_(body, props) {
+  requireOfficer_(props, body.officerEmail);
+  var session = getCheckinSession_(props);
+  if (!session || session.id !== body.sessionId) return json_({ ok: true, data: checkinState_(props) });
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return json_({ ok: false, error: 'busy, try again' });
+  try {
+    var sheet = checkinsSheet_(props);
+    var values = sheet.getDataRange().getValues();
+    var target = String(body.email || '').toLowerCase(), targetName = String(body.name || '').toLowerCase();
+    for (var i = values.length - 1; i >= 1; i--) {
+      var r = values[i];
+      if (String(r[0]) !== session.id || String(r[7]).toLowerCase() === 'yes') continue;
+      if ((target && String(r[4]).toLowerCase() === target) || (!target && String(r[3]).toLowerCase() === targetName)) {
+        sheet.getRange(i + 1, 8).setValue('Yes');
+        break;
+      }
+    }
+    CacheService.getScriptCache().remove('checkins-' + session.id);
+  } finally {
+    lock.releaseLock();
+  }
+  return json_({ ok: true, data: checkinState_(props) });
+}
+
+/** The points table's event columns, to pick which one a session goes into. */
+function handleCheckinColumns_(body, props) {
+  requireOfficer_(props, body.email);
+  if (!props.getProperty('POINTS_SHEET_ID')) return json_({ ok: true, data: { columns: [] } });
+  var grid = loadPointsGrid_(props);
+  var layout = pointsLayout_(grid.values, grid.colors);
+  return json_({ ok: true, data: { columns: layout.events.map(function (e) { return { col: e.col, name: e.name, date: e.date }; }) } });
+}
+
+/**
+ * Colors one column of the points table for a session: Present for everyone
+ * who checked in, optionally Unexcused for everyone else with an empty cell.
+ * Cells already Excused or Out of Chapter are never changed.
+ */
+function handleCheckinApply_(body, props) {
+  requireOfficer_(props, body.email);
+  var session = getCheckinSession_(props);
+  if (!session || session.id !== body.sessionId) return json_({ ok: false, error: 'That check-in session is no longer the current one.' });
+  var sheetId = props.getProperty('POINTS_SHEET_ID');
+  if (!sheetId) return json_({ ok: false, error: 'POINTS_SHEET_ID is not set' });
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(15000)) return json_({ ok: false, error: 'busy, try again' });
+  try {
+    var book = SpreadsheetApp.openById(sheetId);
+    var tab = props.getProperty('POINTS_TAB');
+    var sheet = tab ? book.getSheetByName(tab) : book.getSheets()[0];
+    var range = sheet.getDataRange();
+    var values = range.getDisplayValues(), colors = range.getBackgrounds();
+
+    // Roster emails/names help match a check-in to a points row.
+    var roster = null;
+    try {
+      var portal = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+      if (portal.getSheetByName(ROSTER_TAB)) roster = readTable_(portal, ROSTER_TAB);
+    } catch (err) {}
+
+    var result = applyCheckins_(values, colors, Number(body.col), checkinList_(props, session.id), !!body.markRest, roster);
+    if (result.error) return json_({ ok: false, error: result.error });
+    var layout = result.layout;
+    var first = layout.headerRow + 1, count = values.length - first;
+    if (count > 0) sheet.getRange(first + 1, Number(body.col) + 1, count, 1).setBackgrounds(result.columnColors);
+    CacheService.getScriptCache().remove('points-grid');
+    delete result.layout; delete result.columnColors;
+    return json_({ ok: true, data: result });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Pure part of applying: works out the new colors for one column. */
+function applyCheckins_(values, colors, col, checkins, markRest, roster) {
+  var layout = pointsLayout_(values, colors);
+  if (!layout.events.some(function (e) { return e.col === col; })) return { error: 'Pick one of the event columns.' };
+  var colorOf = {};
+  Object.keys(layout.keyColors).forEach(function (c) { if (!colorOf[layout.keyColors[c]]) colorOf[layout.keyColors[c]] = c; });
+  if (!colorOf.present) return { error: 'The points sheet\'s color key has no "Present" color.' };
+  if (markRest && !colorOf.unexcused) return { error: 'The points sheet\'s color key has no "Unexcused" color.' };
+
+  var present = {}, unmatched = [], skipped = [], newlyPresent = 0, alreadyPresent = 0, unexcused = 0;
+  checkins.forEach(function (c) {
+    var emails = [c.email], names = [c.name];
+    if (roster) {
+      var i = findRosterRow_(roster, c.email || '', c.name);
+      if (i >= 0) {
+        var row = roster.rows[i];
+        emails.push(firstValue_(row, findColumns_(roster.headers, BROTHER_FIELDS.email)));
+        emails.push(firstValue_(row, findColumns_(roster.headers, BROTHER_FIELDS.personalEmail)));
+        names.push(firstValue_(row, findColumns_(roster.headers, BROTHER_FIELDS.name)));
+      }
+    }
+    var r = matchPointsRow_(values, layout, emails, names);
+    if (r < 0) unmatched.push(c.name); else present[r] = c.name;
+  });
+
+  var columnColors = [];
+  for (var r = layout.headerRow + 1; r < values.length; r++) {
+    var current = String(colors[r][col] || '#ffffff').toLowerCase();
+    var status = layout.keyColors[current];
+    var hasName = String(values[r][layout.nameCol] || '').trim() !== '';
+    var next = current;
+    if (present[r] !== undefined) {
+      if (status === 'excused' || status === 'ooc-involvement' || status === 'ooc-required') skipped.push(present[r]);
+      else if (status === 'present') alreadyPresent++;
+      else { next = colorOf.present; newlyPresent++; }
+    } else if (markRest && hasName && !status) {
+      next = colorOf.unexcused; unexcused++;
+    }
+    columnColors.push([next]);
+  }
+  return { layout: layout, columnColors: columnColors, present: newlyPresent, alreadyPresent: alreadyPresent, unexcused: unexcused, skipped: skipped, unmatched: unmatched };
 }
 
 /* ---------------- Excusal requests ---------------- */

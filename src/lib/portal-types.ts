@@ -95,3 +95,25 @@ export type ExecDashboard = {
     meetings: { name: string; date: string; present: number; excused: number; unexcused: number; other: number }[];
   };
 };
+
+/** The current chapter check-in session (see apps-script/portal.gs, "Chapter check-in"). */
+export type CheckinSession = {
+  id: string;
+  event: string;
+  date: string;
+  openedAt: number;
+  closesAt: number;
+  closed: boolean;
+  geo: { lat: number; lng: number; radius: number } | null;
+  startedBy: string;
+};
+export type Checkin = { name: string; email: string; at: number; method: string };
+export type CheckinState = { session: CheckinSession | null; checkins: Checkin[] };
+export type CheckinAddResult = { result: "checked-in" | "already" | "closed" | "no-session"; at?: number };
+export type CheckinApplyResult = {
+  present: number;
+  alreadyPresent: number;
+  unexcused: number;
+  skipped: string[];
+  unmatched: string[];
+};
