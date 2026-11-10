@@ -1,4 +1,5 @@
 import type { ExecDashboard, Officer } from "@/lib/portal-types";
+import { NamesToggle, Private, PrivateNamesProvider } from "@/components/portal/private-names";
 
 // Exec dashboard (officers only). Everything comes from the portal sheet and
 // the secretary's points table; see apps-script/portal.gs, handleDashboard_.
@@ -90,11 +91,15 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
     : null;
 
   return (
+    <PrivateNamesProvider>
     <div className="space-y-6">
-      <p className="text-sm text-muted">
-        Signed in as <span className="font-medium text-ink">{officer.name || officer.email}</span>
-        {officer.position && <> · {officer.position}</>}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted">
+          Signed in as <span className="font-medium text-ink">{officer.name || officer.email}</span>
+          {officer.position && <> · {officer.position}</>}
+        </p>
+        <NamesToggle />
+      </div>
 
       <a
         href="/portal/exec/check-in"
@@ -131,9 +136,15 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
               {pending.map((p) => (
                 <li key={p.email} className="py-3 first:pt-0 last:pb-0">
                   <p className="font-medium text-ink">
-                    {p.name || "Unknown name"} <span className="font-normal text-muted">· {p.email}</span>
+                    <Private>
+                      {p.name || "Unknown name"} <span className="font-normal text-muted">· {p.email}</span>
+                    </Private>
                   </p>
-                  {p.note && <p className="mt-0.5 text-sm text-muted">{p.note}</p>}
+                  {p.note && (
+                    <p className="mt-0.5 text-sm text-muted">
+                      <Private>{p.note}</Private>
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
@@ -170,7 +181,9 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
                   <tbody className="divide-y divide-line">
                     {points.behind.map((b) => (
                       <tr key={b.name}>
-                        <td className="px-3 py-2 text-ink">{b.name}</td>
+                        <td className="px-3 py-2 text-ink">
+                          <Private>{b.name}</Private>
+                        </td>
                         <td className="px-3 py-2 text-right font-medium text-red-700">{fmt(b.total)}</td>
                         <td className="px-3 py-2 text-right text-muted">{fmt(b.mid)}</td>
                         <td className="px-3 py-2 text-right text-muted">{fmt(b.goal)}</td>
@@ -197,7 +210,9 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
                 {data.excusals.slice(0, 10).map((e, i) => (
                   <li key={`${e.submitted}-${i}`} className="flex items-start justify-between gap-3 py-2.5 text-sm first:pt-0 last:pb-0">
                     <div>
-                      <p className="font-medium text-ink">{e.name}</p>
+                      <p className="font-medium text-ink">
+                        <Private>{e.name}</Private>
+                      </p>
                       <p className="text-muted">
                         {e.event}
                         {e.eventDate && ` · ${e.eventDate}`}
@@ -230,22 +245,25 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
               <li key={`${c.received}-${i}`} className="py-3 text-sm first:pt-0 last:pb-0">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <p className="font-medium text-ink">
-                    {c.name} <span className="font-normal text-muted">· {c.topic}</span>
+                    <Private>{c.name}</Private> <span className="font-normal text-muted">· {c.topic}</span>
                   </p>
                   {c.handledBy ? (
-                    <span className="text-xs text-green-700">Handled by {c.handledBy}</span>
+                    <span className="text-xs text-green-700">Handled by <Private>{c.handledBy}</Private></span>
                   ) : (
                     <a href={`mailto:${c.email}`} className="text-xs font-medium text-navy underline underline-offset-4">
-                      Reply to {c.email}
+                      Reply to <Private>{c.email}</Private>
                     </a>
                   )}
                 </div>
-                <p className="mt-1 line-clamp-2 text-muted">{c.message}</p>
+                <p className="mt-1 line-clamp-2 text-muted">
+                  <Private>{c.message}</Private>
+                </p>
               </li>
             ))}
           </ul>
         )}
       </Panel>
     </div>
+    </PrivateNamesProvider>
   );
 }
