@@ -125,9 +125,24 @@ export function ResourceList({ resources }: { resources: Resource[] | null }) {
   );
 }
 
-export function PortalCallouts() {
+export function PortalCallouts({ officerPosition }: { officerPosition?: string | null }) {
   return (
     <div className="space-y-4">
+      {officerPosition !== undefined && officerPosition !== null && (
+        <Link
+          href="/portal/exec"
+          className="flex items-center justify-between gap-6 rounded-xl border-2 border-gold bg-gold-soft p-5 text-navy transition hover:brightness-95"
+        >
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest">Officers · {officerPosition || "Exec board"}</p>
+            <p className="mt-1 font-display text-xl font-bold">Exec dashboard</p>
+            <p className="mt-0.5 text-sm">Access requests, points, attendance, excusals and website messages</p>
+          </div>
+          <span aria-hidden className="text-2xl">
+            →
+          </span>
+        </Link>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <Callout
           href="/portal/brothers"

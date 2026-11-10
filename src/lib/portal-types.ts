@@ -76,3 +76,22 @@ export type MyPoints =
       midSemesterGoal: number | null;
       events: { name: string; date: string; points: number | null; status?: PointsStatus }[];
     };
+
+/** A row of the Officers tab: who may open the exec dashboard. */
+export type Officer = { email: string; name: string; position: string };
+
+export type ExecDashboard = {
+  sheetUrl: string;
+  members: { activeEmails: number; pending: { email: string; name: string; note: string }[] };
+  excusals: { submitted: string; name: string; event: string; eventDate: string; proof: string; decision: string }[];
+  contact: { received: string; name: string; email: string; topic: string; message: string; handledBy: string }[];
+  points?: {
+    sheetUrl: string;
+    brothers: number;
+    average: number;
+    metGoal: number;
+    metMid: number;
+    behind: { name: string; total: number; mid: number | null; goal: number | null }[];
+    meetings: { name: string; date: string; present: number; excused: number; unexcused: number; other: number }[];
+  };
+};

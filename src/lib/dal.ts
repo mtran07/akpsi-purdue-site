@@ -6,13 +6,15 @@ import { auth } from "@/auth";
 import {
   fetchAlumni,
   fetchBrothers,
+  fetchDashboard,
   fetchEvents,
   fetchMyPoints,
   fetchMyProfile,
+  fetchOfficers,
   fetchResources,
   type ProfileResult,
 } from "@/lib/portal-data";
-import type { Alumnus, Brother, ChapterCalendar, MyPoints, Resource } from "@/lib/portal-types";
+import type { Alumnus, Brother, ChapterCalendar, ExecDashboard, MyPoints, Officer, Resource } from "@/lib/portal-types";
 
 /*
   Data access layer for the member portal. Every read of brother-only data
@@ -127,4 +129,28 @@ export async function warmPortal() {
     fetchMyProfile(viewer.email, viewer.name),
   ]);
   after(() => loading);
+}
+
+/**
+ * The signed-in brother's Officers-tab entry, or null. Officers are matched
+ * by the exact email they sign in with (never by name).
+ */
+export const getOfficer = cache(async (): Promise<Officer | null> => {
+  const viewer = await getViewer();
+  if (viewer.status !== "member") return null;
+  try {
+    const officers = await fetchOfficers();
+    return officers.find((o) => o.email === viewer.email.trim().toLowerCase()) ?? null;
+  } catch (error) {
+    console.error("Couldn't load officers", error);
+    return null; // fail closed
+  }
+});
+
+/** Exec dashboard data; sends anyone who isn't an officer back to the portal. */
+export async function getDashboardForOfficer(): Promise<{ officer: Officer; data: ExecDashboard }> {
+  const viewer = await requireMember();
+  const officer = await getOfficer();
+  if (!officer) redirect("/portal");
+  return { officer, data: await fetchDashboard(viewer.email) };
 }

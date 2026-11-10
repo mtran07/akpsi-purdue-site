@@ -62,6 +62,7 @@ coffee-chat drafts. What's left is setup and moving people over. Follow
 | 4.5 | Retire the Netlify directory and its old Apps Script deployment | S | Melissa |
 | 4.6 | ~~Add map and insights views to the directory, like the old site had~~ Done: cards, list, map, insights, Near Me | M | |
 | 4.7 | Update the live Apps Script to the latest `portal.gs` (adds Sector, Prev. Companies and sign-in requests) and deploy a new version | S | Melissa |
+| 4.13 | Add an **Officers** tab (import `officers-tab.csv`), add Gmail rows for Youseph, Sid and Meghana, and redeploy the Apps Script | S | Melissa |
 | 4.12 | Set `POINTS_SHEET_ID` (and `POINTS_TAB` if the points tab isn't first) for My points | S | Melissa |
 | 4.11 | Set `SECRETARY_EMAIL` in the Apps Script for the excusal form; tell brothers about My profile | S | Melissa |
 | 4.10 | Set `CALENDAR_ID` in the Apps Script so the portal shows chapter events; share the calendar with brothers so they can subscribe | S | Melissa |
