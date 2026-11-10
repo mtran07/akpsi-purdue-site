@@ -1,17 +1,19 @@
 {
-  "term": "Spring 2026",
+  "term": "Fall 2026",
   "committees": [
-    { "committee": "Recruitment", "heads": ["Sairam Ande", "Paula Ramos Perez"] },
-    { "committee": "Professional Internal", "heads": ["Sebastian Talarek"] },
-    { "committee": "Professional External", "heads": ["Anjali Bhawnani", "Hannah Cha"] },
-    { "committee": "Technology", "heads": ["Rohit Kelkar"] },
-    { "committee": "Marketing", "heads": ["Yusuf Javaid", "Rain Song"] },
-    { "committee": "Service", "heads": ["Vishwadeep Singh", "Dhyana Pasupu"] },
-    { "committee": "Diversity, Equity, and Inclusion", "heads": ["Pratham Trivedi"] },
-    { "committee": "Alumni Relations", "heads": ["Neha Pudota", "Melissa Tran"] },
-    { "committee": "Fundraising", "heads": ["Jake Futterman"] },
-    { "committee": "Special Events", "heads": ["Aarya Iyer", "Kylie Hynes"] },
-    { "committee": "Brotherhood Relations", "heads": ["Shriya Mummaneni", "Esha Rai"] },
-    { "committee": "Historian", "heads": ["Ashika Gogineni"] }
+    { "committee": "Recruitment", "heads": ["Maggie Brown", "Zayd Choudhary"], "photo": "/images/committees/recruitment.jpg" },
+    { "committee": "Professional Internal", "heads": ["Jiya Kalra", "Stephen Thomas"], "photo": "/images/committees/professional-internal.jpg" },
+    { "committee": "Professional External", "heads": ["Hannah Cha", "Anjali Bhawnani"], "photo": "/images/committees/professional-external.jpg" },
+    { "committee": "Technology", "heads": ["Dhyana Pasupu", "Melissa Tran"], "photo": "/images/committees/technology.jpg" },
+    { "committee": "Marketing", "heads": ["Nicholas Song", "Tim Le"], "photo": "/images/committees/marketing.jpg" },
+    { "committee": "Service", "heads": ["Sanyam Shekhar", "Gary Huang"], "photo": "/images/committees/service.jpg" },
+    { "committee": "Diversity, Equity & Inclusion", "heads": ["Ani Holavanahalli", "Swetha Bala"], "photo": "/images/committees/dei.jpg" },
+    { "committee": "Alumni Relations", "heads": ["Tanya Jain", "Megan Xu"], "photo": "/images/committees/alumni-relations.jpg" },
+    { "committee": "Fundraising", "heads": ["Anish Mahapatra", "Aarna Dey"], "photo": "/images/committees/fundraising.jpg" },
+    { "committee": "Special Events", "heads": ["Tarek Osman"], "photo": "/images/committees/special-events.jpg" },
+    { "committee": "Brotherhood Relations", "heads": ["Bhavya Gupta", "KJ Mohanan"], "photo": "/images/committees/brotherhood-relations.jpg" },
+    { "committee": "Historian", "heads": ["Fibi Par"], "photo": "/images/committees/historian.jpg" },
+    { "committee": "Parliamentarian", "heads": ["Fayrouz Mourad"], "photo": "/images/committees/parliamentarian.jpg" },
+    { "committee": "Pledge Trainers", "heads": ["Abhinav Bondlela", "Khue Nguyen", "Iniya Natarajan", "Adit Doppa", "Maziar Ziai"], "photo": "/images/committees/pledge-trainers.jpg" }
   ]
 }
