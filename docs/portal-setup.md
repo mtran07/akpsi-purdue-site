@@ -107,6 +107,13 @@ tab. The sender is never emailed, so the form can't be used to spam other people
 Spam checks: a hidden trap field, a minimum fill time, 3 messages an hour per visitor,
 and 40 a day in total.
 
+**Officers** (exec dashboard): who can open `/portal/exec`. Columns `Email | Name |
+Position`, one row per email (add both an officer's Gmail and Purdue email). Matching is
+by the exact email they sign in with, never by name. The dashboard shows access requests,
+points and chapter attendance (from the points sheet), recent excusals (without reasons,
+which stay in the secretary's email and the Excusals tab) and contact-form messages.
+Update this tab when officers change; it takes effect within 5 minutes.
+
 **Resources** (optional): links shown on the portal home page
 
 | Title | URL | Description | Category |

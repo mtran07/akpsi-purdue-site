@@ -22,6 +22,7 @@
  *                      class, class year, major, position, LinkedIn only.
  *                      Rows with "Show on website" = No are left out.
  *   ?action=brothers   full Roster tab incl. emails and phone (portal only)
+ *   ?action=officers   the Officers tab (Email | Name | Position): who sees the exec dashboard
  *   ?action=events     upcoming events from the chapter Google Calendar
  *                      (script property CALENDAR_ID; the account that owns
  *                      this script must be able to see that calendar)
@@ -39,6 +40,7 @@
  *                      (POINTS_SHEET_ID), incl. chapter attendance read from cell colors
  *   action=contact     public contact form: emails CONTACT_EMAIL (reply-to the
  *                      sender, who is never emailed) and logs it on a Contact tab
+ *   action=dashboard   exec dashboard data (only for an email on the Officers tab)
  *   action=excuse      emails an excusal request (with an optional proof photo)
  *                      to SECRETARY_EMAIL and logs it on the Excusals tab
  *
@@ -108,6 +110,9 @@ function doGet(e) {
       case 'brothers':
         if (!spreadsheet.getSheetByName(ROSTER_TAB)) return json_({ ok: true, data: [] });
         return json_({ ok: true, data: readBrothers_(readTable_(spreadsheet, ROSTER_TAB), true) });
+      case 'officers':
+        if (!spreadsheet.getSheetByName(OFFICERS_TAB)) return json_({ ok: true, data: [] });
+        return json_({ ok: true, data: readOfficers_(readTable_(spreadsheet, OFFICERS_TAB)) });
       case 'events':
         return json_({ ok: true, data: readEvents_(props.getProperty('CALENDAR_ID')) });
       default:
@@ -137,6 +142,7 @@ function doPost(e) {
       case 'excuse': return handleExcuse_(body, props);
       case 'points': return handlePoints_(body, props);
       case 'contact': return handleContact_(body, props);
+      case 'dashboard': return handleDashboard_(body, props);
       default: return json_({ ok: false, error: 'unknown action' });
     }
   } catch (err) {
@@ -400,14 +406,7 @@ function handlePoints_(body, props) {
     }
   }
 
-  var grid = cached_('points-grid', 120, function () {
-    var book = SpreadsheetApp.openById(sheetId);
-    var tab = props.getProperty('POINTS_TAB');
-    var sheet = tab ? book.getSheetByName(tab) : book.getSheets()[0];
-    if (!sheet) throw new Error('No points tab named "' + tab + '"');
-    var range = sheet.getDataRange();
-    return { values: range.getDisplayValues(), colors: range.getBackgrounds(), name: book.getName() };
-  });
+  var grid = loadPointsGrid_(props);
   var result = readPoints_(grid.values, grid.colors, emails.filter(Boolean), names.filter(Boolean));
   result.configured = true;
   result.sheetName = grid.name;
@@ -421,7 +420,7 @@ function handlePoints_(body, props) {
  * "Mid-Semester Goal:". Chapter attendance is the cell color, matched to
  * the color key above the table.
  */
-function readPoints_(values, colors, emails, names) {
+function pointsLayout_(values, colors) {
   var norm = function (v) { return String(v || '').trim().toLowerCase().replace(/:$/, ''); };
   var findRow = function (label) {
     for (var r = 0; r < values.length; r++) {
@@ -464,6 +463,22 @@ function readPoints_(values, colors, emails, names) {
       if (title) events.push({ col: c, name: title, date: datesAt ? String(values[datesAt.row][c] || '').trim() : '' });
     }
   }
+  return {
+    headerRow: header.row, nameCol: nameCol, emailCol: emailCol, totalCol: totalCol,
+    goalCol: goalCol, midCol: midCol, keyColors: keyColors, events: events
+  };
+}
+
+function pointsNumber_(v) {
+  var n = parseFloat(String(v).replace(/[^\d.\-]/g, ''));
+  return isNaN(n) ? null : n;
+}
+
+function readPoints_(values, colors, emails, names) {
+  var layout = pointsLayout_(values, colors);
+  var header = { row: layout.headerRow }, nameCol = layout.nameCol, emailCol = layout.emailCol;
+  var totalCol = layout.totalCol, goalCol = layout.goalCol, midCol = layout.midCol;
+  var keyColors = layout.keyColors, events = layout.events;
 
   // Their row: by email first, then one exact name, then one close name.
   var wantedEmails = emails.map(function (e) { return e.toLowerCase(); });
@@ -481,7 +496,7 @@ function readPoints_(values, colors, emails, names) {
   if (match < 0 && exact.length === 0 && loose.length === 1) match = loose[0];
   if (match < 0) return { found: false };
 
-  var num = function (v) { var n = parseFloat(String(v).replace(/[^\d.\-]/g, '')); return isNaN(n) ? null : n; };
+  var num = pointsNumber_;
   var row = values[match];
   return {
     found: true,
@@ -495,6 +510,164 @@ function readPoints_(values, colors, emails, names) {
       if (status) item.status = status;
       return item;
     })
+  };
+}
+
+/** The points sheet's values and cell colors (cached 2 minutes). */
+function loadPointsGrid_(props) {
+  var sheetId = props.getProperty('POINTS_SHEET_ID');
+  return cached_('points-grid', 120, function () {
+    var book = SpreadsheetApp.openById(sheetId);
+    var tab = props.getProperty('POINTS_TAB');
+    var sheet = tab ? book.getSheetByName(tab) : book.getSheets()[0];
+    if (!sheet) throw new Error('No points tab named "' + tab + '"');
+    var range = sheet.getDataRange();
+    return { values: range.getDisplayValues(), colors: range.getBackgrounds(), name: book.getName(), url: book.getUrl() };
+  });
+}
+
+/* ---------------- Exec dashboard ---------------- */
+
+var OFFICERS_TAB = 'Officers';
+
+/** Officers tab: Email | Name | Position. One row per email (an officer can have several). */
+function readOfficers_(table) {
+  var emailCol = findColumns_(table.headers, ['email', 'emailaddress', 'googleemail'])[0];
+  var nameCol = findColumns_(table.headers, ['name', 'fullname'])[0];
+  var posCol = findColumns_(table.headers, ['position', 'role', 'office', 'title'])[0];
+  if (emailCol === undefined) throw new Error('Officers tab needs an "Email" column');
+  var out = [];
+  table.rows.forEach(function (row) {
+    var email = String(row[emailCol] || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    out.push({
+      email: email,
+      name: nameCol === undefined ? '' : String(row[nameCol] || '').trim(),
+      position: posCol === undefined ? '' : String(row[posCol] || '').trim()
+    });
+  });
+  return out;
+}
+
+function handleDashboard_(body, props) {
+  var email = clean_(body.email, 200).toLowerCase();
+  var spreadsheet = SpreadsheetApp.openById(props.getProperty('SHEET_ID'));
+  // The script checks for itself, not just the website.
+  var officers = spreadsheet.getSheetByName(OFFICERS_TAB) ? readOfficers_(readTable_(spreadsheet, OFFICERS_TAB)) : [];
+  if (!officers.some(function (o) { return o.email === email; })) return json_({ ok: false, error: 'not an officer' });
+
+  var data = { sheetUrl: spreadsheet.getUrl() };
+  data.members = summarizeMembers_(readTable_(spreadsheet, MEMBERS_TAB));
+  data.excusals = spreadsheet.getSheetByName(EXCUSALS_TAB) ? recentExcusals_(readTable_(spreadsheet, EXCUSALS_TAB), 25) : [];
+  data.contact = spreadsheet.getSheetByName(CONTACT_TAB) ? recentContact_(readTable_(spreadsheet, CONTACT_TAB), 10) : [];
+  if (props.getProperty('POINTS_SHEET_ID')) {
+    var grid = loadPointsGrid_(props);
+    data.points = summarizePoints_(grid.values, grid.colors);
+    data.points.sheetUrl = grid.url || '';
+  }
+  return json_({ ok: true, data: data });
+}
+
+/** Active count and the waiting access requests. */
+function summarizeMembers_(table) {
+  var emailCol = findColumns_(table.headers, ['email', 'emailaddress', 'googleemail'])[0];
+  var nameCol = findColumns_(table.headers, ['name', 'fullname'])[0];
+  var statusCol = findColumns_(table.headers, ['status', 'active'])[0];
+  var noteCol = findColumns_(table.headers, ['note', 'notes'])[0];
+  var active = 0, pending = [];
+  table.rows.forEach(function (row) {
+    var status = statusCol === undefined ? '' : String(row[statusCol] || '').trim().toLowerCase();
+    var email = String(row[emailCol] || '').trim();
+    if (!email) return;
+    if (ALLOWED_STATUSES.indexOf(status) !== -1) active++;
+    else if (status === PENDING_STATUS.toLowerCase()) {
+      pending.push({
+        email: email,
+        name: nameCol === undefined ? '' : String(row[nameCol] || '').trim(),
+        note: noteCol === undefined ? '' : String(row[noteCol] || '').trim().slice(0, 300)
+      });
+    }
+  });
+  return { activeEmails: active, pending: pending };
+}
+
+/** Newest excusals first. The reason is left out: it can be personal, and it's in the secretary's email and the tab. */
+function recentExcusals_(table, limit) {
+  var h = table.headers.map(normalizeHeader_);
+  var col = function (name) { return h.indexOf(name); };
+  var rows = table.rows.filter(function (r) { return r.join('').trim(); }).slice(-limit).reverse();
+  return rows.map(function (r) {
+    return {
+      submitted: String(r[col('submitted')] || ''),
+      name: String(r[col('name')] || ''),
+      event: String(r[col('event')] || ''),
+      eventDate: String(r[col('eventdate')] || ''),
+      proof: String(r[col('proofattached')] || ''),
+      decision: String(r[col('decision')] || '')
+    };
+  });
+}
+
+function recentContact_(table, limit) {
+  var h = table.headers.map(normalizeHeader_);
+  var col = function (name) { return h.indexOf(name); };
+  var rows = table.rows.filter(function (r) { return r.join('').trim(); }).slice(-limit).reverse();
+  return rows.map(function (r) {
+    return {
+      received: String(r[col('received')] || ''),
+      name: String(r[col('name')] || ''),
+      email: String(r[col('email')] || ''),
+      topic: String(r[col('about')] || ''),
+      message: String(r[col('message')] || '').slice(0, 280),
+      handledBy: String(r[col('handledby')] || '')
+    };
+  });
+}
+
+/** Chapter-wide points picture: totals vs goals, who's behind, chapter-meeting attendance. */
+function summarizePoints_(values, colors) {
+  var L = pointsLayout_(values, colors);
+  var brothers = [];
+  for (var r = L.headerRow + 1; r < values.length; r++) {
+    var name = String(values[r][L.nameCol] || '').trim();
+    if (!name) continue;
+    brothers.push({
+      name: name,
+      total: L.totalCol >= 0 ? (pointsNumber_(values[r][L.totalCol]) || 0) : 0,
+      goal: L.goalCol >= 0 ? pointsNumber_(values[r][L.goalCol]) : null,
+      mid: L.midCol >= 0 ? pointsNumber_(values[r][L.midCol]) : null,
+      row: r
+    });
+  }
+  var sum = 0, metGoal = 0, metMid = 0;
+  brothers.forEach(function (b) {
+    sum += b.total;
+    if (b.goal !== null && b.total >= b.goal) metGoal++;
+    if (b.mid !== null && b.total >= b.mid) metMid++;
+  });
+  var behind = brothers
+    .filter(function (b) { return b.mid !== null && b.total < b.mid; })
+    .sort(function (a, b) { return a.total - b.total; })
+    .map(function (b) { return { name: b.name, total: b.total, mid: b.mid, goal: b.goal }; });
+
+  // Attendance at each chapter meeting (columns named "Chapter"), from cell colors.
+  var meetings = L.events.filter(function (e) { return /chapter/i.test(e.name); }).map(function (e) {
+    var counts = { present: 0, excused: 0, unexcused: 0, other: 0 };
+    brothers.forEach(function (b) {
+      var status = L.keyColors[String(colors[b.row][e.col] || '').toLowerCase()];
+      if (status === 'present' || status === 'excused' || status === 'unexcused') counts[status]++;
+      else if (status) counts.other++;
+    });
+    return { name: e.name, date: e.date, present: counts.present, excused: counts.excused, unexcused: counts.unexcused, other: counts.other };
+  });
+
+  return {
+    brothers: brothers.length,
+    average: brothers.length ? Math.round((sum / brothers.length) * 10) / 10 : 0,
+    metGoal: metGoal,
+    metMid: metMid,
+    behind: behind,
+    meetings: meetings
   };
 }
 

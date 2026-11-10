@@ -1,5 +1,5 @@
 import "server-only";
-import type { Alumnus, Brother, ChapterCalendar, Member, MyPoints, Resource } from "@/lib/portal-types";
+import type { Alumnus, Brother, ChapterCalendar, ExecDashboard, Member, MyPoints, Officer, Resource } from "@/lib/portal-types";
 
 /*
   Raw access to the portal's Google Sheet, through the Apps Script web app in
@@ -10,7 +10,7 @@ import type { Alumnus, Brother, ChapterCalendar, Member, MyPoints, Resource } fr
   which checks that the visitor is a signed-in member first.
 */
 
-type ScriptAction = "members" | "alumni" | "resources" | "events" | "brothers" | "roster";
+type ScriptAction = "members" | "alumni" | "resources" | "events" | "brothers" | "roster" | "officers";
 type ScriptResponse<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export function isPortalConfigured() {
@@ -236,4 +236,25 @@ export async function sendContactMessage(message: {
   message: string;
 }): Promise<void> {
   await postScript<{ sent: boolean }>("contact", message);
+}
+
+/** The Officers tab (who may open the exec dashboard). Cached for a few minutes. */
+export async function fetchOfficers(): Promise<Officer[]> {
+  return cachedScript<Officer[]>("officers");
+}
+
+const DASHBOARD_TTL_MS = 2 * 60_000;
+let dashboardCache: { at: number; data: Promise<ExecDashboard> } | null = null;
+
+/**
+ * Exec dashboard data. The Apps Script re-checks that this email is on the
+ * Officers tab. The result is the same for every officer, so it's shared for
+ * a couple of minutes; callers must check the viewer is an officer first.
+ */
+export async function fetchDashboard(email: string): Promise<ExecDashboard> {
+  if (dashboardCache && Date.now() - dashboardCache.at < DASHBOARD_TTL_MS) return dashboardCache.data;
+  const data = postScript<ExecDashboard>("dashboard", { email });
+  dashboardCache = { at: Date.now(), data };
+  data.catch(() => (dashboardCache = null));
+  return data;
 }
