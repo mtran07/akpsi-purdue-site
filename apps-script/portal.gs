@@ -1442,6 +1442,9 @@ function onMembersEdit(e) {
 /**
  * Run from the editor to send the welcome email to brothers who were already
  * approved before welcome emails existed (rows marked "Already a member").
+ * Only personal Gmail addresses are emailed: anyone listed under a Purdue or
+ * other address may not be able to sign in with it, so they're skipped (and
+ * stay marked, so a later run won't email them either).
  * Gmail limits how many emails a script can send per day (about 100 for a
  * personal account), so this stops at the limit; run it again tomorrow to
  * finish. Each brother is emailed once and stamped with the date.
@@ -1457,12 +1460,12 @@ function sendWelcomeToExisting() {
     var emailCol = findColumns_(values[0], ['email', 'emailaddress', 'googleemail'])[0];
     var nameCol = findColumns_(values[0], ['name', 'fullname'])[0];
     var statusCol = findColumns_(values[0], ['status', 'active'])[0];
-    var sent = 0, left = 0, quota = MailApp.getRemainingDailyQuota();
+    var sent = 0, left = 0, skipped = 0, quota = MailApp.getRemainingDailyQuota();
     for (var i = 1; i < values.length; i++) {
       var status = statusCol === undefined ? '' : String(values[i][statusCol] || '').trim().toLowerCase();
       var email = String(values[i][emailCol] || '').trim().toLowerCase();
       if (ALLOWED_STATUSES.indexOf(status) === -1 || String(values[i][welcomeCol - 1]).trim() !== 'Already a member') continue;
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue;
+      if (!/^[^\s@]+@(gmail|googlemail)\.com$/.test(email)) { skipped++; continue; }
       if (sent >= quota) { left++; continue; }
       try {
         sendWelcome_(email, nameCol === undefined ? '' : String(values[i][nameCol] || '').trim());
@@ -1473,7 +1476,8 @@ function sendWelcomeToExisting() {
         quota = sent; // Gmail stopped us; the rest wait for tomorrow.
       }
     }
-    Logger.log('Sent ' + sent + ' welcome email(s).' + (left ? ' ' + left + ' left: Gmail\'s daily limit was reached, so run this again tomorrow.' : ' Everyone is done.'));
+    Logger.log('Sent ' + sent + ' welcome email(s) to Gmail addresses.' +
+      (skipped ? ' Skipped ' + skipped + ' non-Gmail address(es).' : '') + (left ? ' ' + left + ' left: Gmail\'s daily limit was reached, so run this again tomorrow.' : ' Everyone is done.'));
   } finally {
     lock.releaseLock();
   }
