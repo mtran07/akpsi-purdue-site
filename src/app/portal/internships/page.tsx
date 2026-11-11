@@ -3,9 +3,9 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PageHeader, Section } from "@/components/page-header";
-import { InternshipBoard } from "@/components/portal/internship-board";
+import { InternshipBoard, type AlumMatch } from "@/components/portal/internship-board";
 import { getAlumniForMember } from "@/lib/dal";
-import { INTERNSHIP_REPO, INTERNSHIP_TERM, companyKey, getInternships } from "@/lib/internships";
+import { INTERNSHIP_REPO, INTERNSHIP_TERM, companyTokens, getInternships, sameCompany } from "@/lib/internships";
 import { isPortalConfigured } from "@/lib/portal-data";
 
 export const metadata: Metadata = { title: "Internships" };
@@ -16,7 +16,7 @@ export default function InternshipsPage() {
       <PageHeader
         eyebrow="Member portal"
         title={`${INTERNSHIP_TERM} internships`}
-        intro="Open tech, product, data and quant internships, updated hourly. Tap Apply to go straight to the application, and see when a Pi Omega alum works there."
+        intro="Open tech, product, data and quant internships, updated hourly. Tap Apply to go straight to the application, and tap the ★ badge to see Pi Omega alumni who work or worked there."
       />
       <Section>
         <Link href="/portal" className="text-sm font-medium text-navy underline underline-offset-4">
@@ -54,16 +54,44 @@ async function Board() {
     );
   }
 
-  // How many alumni work at each company (current employer only), by normalized name.
-  const alumniAt: Record<string, number> = {};
-  for (const a of alumni) {
-    if (!a.company) continue;
-    const key = companyKey(a.company);
-    if (key) alumniAt[key] = (alumniAt[key] ?? 0) + 1;
-  }
-  const withAlumni = listings.map((l) => ({ ...l, alumni: alumniAt[companyKey(l.company)] ?? 0 }));
+  // Every company each alum works at now or listed as a previous employer.
+  const employers = alumni.flatMap((a) => [
+    ...(a.company ? [{ alum: a, company: a.company, current: true }] : []),
+    ...(a.prevCompanies ?? "")
+      .split(/[,;\n]/)
+      .map((c) => c.trim())
+      .filter(Boolean)
+      .map((company) => ({ alum: a, company, current: false })),
+  ]);
+  const employerTokens = employers.map((e) => ({ ...e, tokens: companyTokens(e.company) }));
 
-  return <InternshipBoard listings={withAlumni} source={INTERNSHIP_REPO} />;
+  // Alumni for each listed company (only companies that have openings are sent to the page).
+  const alumniAt: Record<string, AlumMatch[]> = {};
+  for (const company of new Set(listings.map((l) => l.company))) {
+    const tokens = companyTokens(company);
+    const found = new Map<string, AlumMatch>();
+    for (const e of employerTokens) {
+      if (!sameCompany(tokens, e.tokens)) continue;
+      const prev = found.get(e.alum.id);
+      // Someone who works there now beats an earlier stint at the same place.
+      if (prev && (prev.current || !e.current)) continue;
+      found.set(e.alum.id, {
+        id: e.alum.id,
+        name: e.alum.name,
+        gradYear: e.alum.gradYear,
+        position: e.current ? e.alum.position : undefined,
+        company: e.company,
+        current: e.current,
+        linkedin: e.alum.linkedin,
+        email: e.alum.email,
+      });
+    }
+    if (found.size) {
+      alumniAt[company] = [...found.values()].sort((a, b) => Number(b.current) - Number(a.current) || a.name.localeCompare(b.name));
+    }
+  }
+
+  return <InternshipBoard listings={listings} alumniAt={alumniAt} source={INTERNSHIP_REPO} />;
 }
 
 function BoardSkeleton() {
