@@ -1,50 +1,10 @@
 import Link from "next/link";
-import { signInWithGoogle, signOutOfPortal } from "@/app/portal/actions";
+import { signOutOfPortal } from "@/app/portal/actions";
 import type { Resource } from "@/lib/portal-types";
 import { RequestAccessForm } from "@/components/portal/request-access-form";
 
-const ERROR_MESSAGES: Record<string, string> = {
-  AccessDenied:
-    "That Google account isn't on the member list. Sign in with the email the chapter has on file, or ask the VP of Membership to add you.",
-  Configuration: "Sign-in isn't working right now. Let the Technology Committee know.",
-};
-
 export function Card({ children }: { children: React.ReactNode }) {
   return <div className="max-w-xl rounded-xl border border-line bg-white p-8">{children}</div>;
-}
-
-export function SignInPanel({ error }: { error?: string }) {
-  const notice = error
-    ? { tone: "error" as const, text: ERROR_MESSAGES[error] ?? "Sign-in didn't work. Please try again." }
-    : null;
-
-  return (
-    <Card>
-      <h2 className="font-display text-2xl font-bold text-navy">Brothers only</h2>
-      <p className="mt-2 text-muted">
-        Sign in to see brother resources and the alumni directory. Use your personal Gmail; Purdue email
-        accounts usually aren&apos;t Google accounts.
-      </p>
-      {notice && (
-        <p
-          role={notice.tone === "error" ? "alert" : "status"}
-          className={`mt-4 rounded-lg p-3 text-sm ${
-            notice.tone === "error" ? "bg-red-50 text-red-800" : "bg-gold-soft text-navy"
-          }`}
-        >
-          {notice.text}
-        </p>
-      )}
-      <form action={signInWithGoogle} className="mt-6">
-        <button
-          type="submit"
-          className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-deep"
-        >
-          Sign in with Google
-        </button>
-      </form>
-    </Card>
-  );
 }
 
 export function SignOutButton() {

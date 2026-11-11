@@ -1,5 +1,6 @@
 import Link from "next/link";
 import site from "@/data/site.json";
+import { AccountButton, MobileAccountLink } from "@/components/account-button";
 
 export function SiteHeader() {
   return (
@@ -25,12 +26,7 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <Link
-            href="/portal"
-            className="whitespace-nowrap rounded-full border border-gold px-4 py-1.5 text-sm font-medium text-gold transition-colors hover:bg-gold hover:text-navy"
-          >
-            Sign in
-          </Link>
+          <AccountButton />
         </nav>
 
         {/* Mobile navigation: <details> keeps it working without client JavaScript */}
@@ -43,7 +39,7 @@ export function SiteHeader() {
             aria-label="Main"
             className="absolute right-0 mt-2 w-56 rounded-lg bg-navy-deep p-2 shadow-xl ring-1 ring-white/10"
           >
-            {[...site.nav, { label: "Sign in", href: "/portal" }].map((item) => (
+            {site.nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -52,6 +48,7 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+            <MobileAccountLink />
           </nav>
         </details>
       </div>

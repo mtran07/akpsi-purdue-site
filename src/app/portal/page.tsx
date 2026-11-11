@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PageHeader, Section } from "@/components/page-header";
@@ -7,7 +8,6 @@ import {
   PanelSkeleton,
   PortalCallouts,
   ResourceList,
-  SignInPanel,
   SignOutButton,
 } from "@/components/portal/portal-panels";
 import { UpcomingEvents } from "@/components/portal/upcoming-events";
@@ -37,7 +37,7 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
   const viewer = await getViewer();
 
   if (viewer.status === "signed-out") {
-    return <SignInPanel error={typeof error === "string" ? error : undefined} />;
+    redirect(typeof error === "string" ? `/sign-in?error=${encodeURIComponent(error)}` : "/sign-in");
   }
   if (viewer.status === "not-member") return <NotMemberPanel email={viewer.email} name={viewer.name} />;
 
