@@ -3,15 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import heroPhoto from "../../public/images/chapter/pi-omega-chapter-hero.jpg";
+import heroPhoto from "../../public/images/chapter/pi-omega-chapter.jpg";
 
 /*
-  Full-screen home hero: the chapter photo, blurred ahead of time (a live CSS
-  blur is slow on phones) and darkened, drifting slowly behind the headline. The drift pauses with the button (WCAG 2.2.2) and doesn't run at
-  all with "reduce motion" on. Styles: .hero-* in globals.css.
+  Full-screen home hero: the chapter photo fades in and drifts slowly behind
+  the headline, with a navy wash so the text stays readable. The drift pauses
+  with the button (WCAG 2.2.2) and doesn't run at all with "reduce motion" on.
+  Styles: .hero-* in globals.css.
 
-  To change the photo: replace public/images/chapter/pi-omega-chapter-hero.jpg
-  with a blurred, ~1600px-wide JPEG (any photo works; blur hides low resolution).
+  To change the photo: replace public/images/chapter/pi-omega-chapter.jpg
+  (a sharp photo at least ~2000px wide looks best).
 */
 type Props = {
   eyebrow: string;
@@ -40,12 +41,15 @@ export function HomeHero({ eyebrow, lead, emphasis, intro, primary, secondary }:
           preload
           className="hero-photo object-cover"
         />
-        {/* Navy wash: darkest behind the text, lighter toward the right. */}
-        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgb(8_27_48/0.9)_0%,rgb(8_27_48/0.75)_45%,rgb(8_27_48/0.45)_100%)]" />
+        {/* Navy wash: dark enough behind the text to read, light enough to see the brothers. */}
+        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgb(8_27_48/0.88)_0%,rgb(8_27_48/0.62)_45%,rgb(8_27_48/0.25)_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-navy-deep/70 to-transparent" />
+        {/* Phones: the text spans the whole width, so darken the whole photo a bit more. */}
+        <div className="absolute inset-0 bg-navy-deep/40 sm:hidden" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-navy-deep to-transparent" />
       </div>
 
-      <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-20 sm:px-6 sm:pb-28">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-20 [text-shadow:0_1px_14px_rgb(8_27_48/0.85)] sm:px-6 sm:pb-28">
         <p className="hero-in text-xs font-semibold uppercase tracking-[0.25em] text-gold" style={{ "--d": "0ms" } as React.CSSProperties}>
           {eyebrow}
         </p>
@@ -60,7 +64,7 @@ export function HomeHero({ eyebrow, lead, emphasis, intro, primary, secondary }:
         <p className="hero-in mt-6 max-w-xl text-lg text-white/85 sm:text-xl" style={{ "--d": "420ms" } as React.CSSProperties}>
           {intro}
         </p>
-        <div className="hero-in mt-9 flex flex-wrap gap-3" style={{ "--d": "560ms" } as React.CSSProperties}>
+        <div className="hero-in mt-9 flex flex-wrap gap-3 [text-shadow:none]" style={{ "--d": "560ms" } as React.CSSProperties}>
           <Link
             href={primary.href}
             className="rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-navy transition hover:brightness-110"
