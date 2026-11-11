@@ -29,12 +29,20 @@ const VIEWS: { id: View; label: string }[] = [
 const uniqueSorted = (values: (string | undefined)[]) =>
   [...new Set(values.filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b));
 
-export function AlumniDirectory({ alumni, canDraft }: { alumni: Alumnus[]; canDraft: boolean }) {
+export function AlumniDirectory({
+  alumni,
+  canDraft,
+  initialQuery = "",
+}: {
+  alumni: Alumnus[];
+  canDraft: boolean;
+  initialQuery?: string;
+}) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
   const rows = useMemo(() => alumni.map(enrich), [alumni]);
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [sector, setSector] = useState("");

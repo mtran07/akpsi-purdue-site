@@ -119,6 +119,17 @@ export function PortalCallouts({ officerPosition }: { officerPosition?: string |
         <QuickLink href="/portal/excuse" title="Excusal request" text="Can't make an event? Tell the secretary" />
         <QuickLink href="/portal/profile" title="My profile" text="Update your major, phone and LinkedIn" />
       </div>
+      <Link
+        href="/portal/internships"
+        className="flex items-center justify-between gap-6 rounded-xl border border-line bg-white p-5 transition hover:border-navy"
+      >
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Recruiting</p>
+          <p className="mt-1 font-display text-xl font-bold text-navy">Summer 2027 internships</p>
+          <p className="mt-0.5 text-sm text-muted">Open roles updated hourly, one-tap apply, and which ones have Pi Omega alumni</p>
+        </div>
+        <span aria-hidden className="text-2xl text-navy">→</span>
+      </Link>
     </div>
   );
 }

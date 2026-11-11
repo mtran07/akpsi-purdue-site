@@ -9,7 +9,7 @@ import { isPortalConfigured } from "@/lib/portal-data";
 
 export const metadata: Metadata = { title: "Alumni directory" };
 
-export default function AlumniPage() {
+export default function AlumniPage(props: PageProps<"/portal/alumni">) {
   return (
     <>
       <PageHeader
@@ -23,7 +23,7 @@ export default function AlumniPage() {
         </Link>
         <div className="mt-8">
           <Suspense fallback={<DirectorySkeleton />}>
-            <Directory />
+            <Directory searchParams={props.searchParams} />
           </Suspense>
         </div>
       </Section>
@@ -31,7 +31,7 @@ export default function AlumniPage() {
   );
 }
 
-async function Directory() {
+async function Directory({ searchParams }: { searchParams: PageProps<"/portal/alumni">["searchParams"] }) {
   // Always render per request: this page must never be built ahead of time.
   await connection();
   if (!isPortalConfigured()) {
@@ -40,7 +40,14 @@ async function Directory() {
 
   // Redirects to /portal unless the visitor is a current member.
   const alumni = await getAlumniForMember();
-  return <AlumniDirectory alumni={alumni} canDraft={Boolean(process.env.ANTHROPIC_API_KEY)} />;
+  const q = (await searchParams).q;
+  return (
+    <AlumniDirectory
+      alumni={alumni}
+      canDraft={Boolean(process.env.ANTHROPIC_API_KEY)}
+      initialQuery={typeof q === "string" ? q.slice(0, 80) : ""}
+    />
+  );
 }
 
 function DirectorySkeleton() {
