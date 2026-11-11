@@ -9,6 +9,7 @@ import { getViewer } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 import chapterPhoto from "../../../public/images/chapter/pi-omega-chapter.jpg";
 import site from "@/data/site.json";
+import crest from "../../../public/images/crest.png";
 
 export const metadata: Metadata = {
   title: "Sign In to the Member Portal",
@@ -28,7 +29,7 @@ export default function SignInPage(props: PageProps<"/sign-in">) {
       <div className="relative hidden flex-col justify-center gap-10 overflow-hidden bg-navy p-12 text-white lg:flex">
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full border-[40px] border-gold/10" />
         <div>
-          <p className="font-display text-5xl font-bold text-gold">{site.chapterShort}</p>
+          <Image src={crest} alt="Pi Omega chapter crest" width={96} height={96} priority className="h-24 w-24" />
           <p className="mt-4 max-w-md font-display text-3xl font-bold leading-tight">Pi Omega Brother Portal</p>
         </div>
         <Image
@@ -58,7 +59,7 @@ export default function SignInPage(props: PageProps<"/sign-in">) {
         <div className="flex flex-1 items-center justify-center py-10">
           <div className="w-full max-w-sm">
             <div className="text-center lg:hidden">
-              <p className="font-display text-4xl font-bold text-gold">{site.chapterShort}</p>
+              <Image src={crest} alt="Pi Omega chapter crest" width={88} height={88} priority className="mx-auto h-22 w-22" />
               <p className="mt-2 text-sm font-medium tracking-wide text-white/80">Purdue · Pi Omega</p>
             </div>
             <div className="mt-8 rounded-2xl bg-white p-8 shadow-2xl lg:mt-0">

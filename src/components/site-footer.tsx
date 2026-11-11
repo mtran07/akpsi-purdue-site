@@ -1,11 +1,14 @@
 import Link from "next/link";
+import Image from "next/image";
 import site from "@/data/site.json";
+import crest from "../../public/images/crest.png";
 
 export function SiteFooter() {
   return (
     <footer className="bg-navy-deep text-white/80">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
+          <Image src={crest} alt="Pi Omega chapter crest" width={64} height={64} className="mb-4 h-16 w-16" />
           <p className="font-display text-lg text-white">
             {site.chapterName} <span className="text-gold">{site.chapterShort}</span>
           </p>
@@ -24,7 +27,7 @@ export function SiteFooter() {
         </nav>
 
         <div className="text-sm">
-          <p className="font-medium text-white">Follow us</p>
+          <p className="font-medium text-white">Follow Us</p>
           <ul className="mt-2 space-y-1">
             <li>
               <a href={site.social.instagram} className="hover:text-gold" target="_blank" rel="noreferrer">
