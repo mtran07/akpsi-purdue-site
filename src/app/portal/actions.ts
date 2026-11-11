@@ -5,12 +5,15 @@ import { getViewer } from "@/lib/dal";
 import { fetchAlumni, requestAccess, saveMyProfile, sendExcusal } from "@/lib/portal-data";
 import type { Alumnus } from "@/lib/portal-types";
 
-export async function signInWithGoogle() {
-  await signIn("google", { redirectTo: "/portal" });
+export async function signInWithGoogle(formData?: FormData) {
+  // Only ever return to a portal page (never an outside URL).
+  const next = String(formData?.get("next") ?? "");
+  const redirectTo = /^\/portal(\/[a-z0-9/-]*)?$/.test(next) ? next : "/portal";
+  await signIn("google", { redirectTo });
 }
 
 export async function signOutOfPortal() {
-  await signOut({ redirectTo: "/portal" });
+  await signOut({ redirectTo: "/sign-in?signedOut=1" });
 }
 
 /* ---------------- Coffee-chat email drafts ---------------- */

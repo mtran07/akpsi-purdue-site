@@ -42,9 +42,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: 7 * 24 * 60 * 60, // a week, then sign in again
   },
   pages: {
-    // Both land back on the portal page, which shows the right message.
-    signIn: "/portal",
-    error: "/portal",
+    // The standalone sign-in page shows the right message for each error.
+    signIn: "/sign-in",
+    error: "/sign-in",
   },
   callbacks: {
     async signIn({ account, profile }) {
