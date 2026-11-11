@@ -7,7 +7,6 @@ export function SiteHeader() {
   return (
     <header
       className="sticky top-0 z-40 border-b border-white/10 bg-navy text-white"
-      style={{ viewTransitionName: "site-header" }}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" aria-label="AKPsi Purdue home" className="flex items-baseline gap-2">
