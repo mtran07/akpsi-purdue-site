@@ -4,7 +4,18 @@ import Link from "next/link";
 import { useDeferredValue, useMemo, useState, useSyncExternalStore } from "react";
 import type { Internship } from "@/lib/internships";
 
-type Listing = Internship & { alumni: number };
+export type AlumMatch = {
+  id: string;
+  name: string;
+  gradYear?: string;
+  position?: string;
+  /** The employer as the alum wrote it. */
+  company: string;
+  /** Works there now (false: listed it as a previous company). */
+  current: boolean;
+  linkedin?: string;
+  email?: string;
+};
 
 const PAGE = 40;
 const DAY = 86_400;
@@ -62,7 +73,16 @@ function useApplied() {
   return { applied, toggle };
 }
 
-export function InternshipBoard({ listings, source }: { listings: Listing[]; source: string }) {
+export function InternshipBoard({
+  listings,
+  alumniAt,
+  source,
+}: {
+  listings: Internship[];
+  alumniAt: Record<string, AlumMatch[]>;
+  source: string;
+}) {
+  const [openAlumni, setOpenAlumni] = useState<string | null>(null);
   const [now] = useState(() => Math.floor(Date.now() / 1000));
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
@@ -85,11 +105,11 @@ export function InternshipBoard({ listings, source }: { listings: Listing[]; sou
         (l) =>
           (!category || l.category === category) &&
           (!newOnly || now - l.posted < 7 * DAY) &&
-          (!alumniOnly || l.alumni > 0) &&
+          (!alumniOnly || Boolean(alumniAt[l.company])) &&
           (!hideApplied || !applied.has(l.id)) &&
           (!q || `${l.company} ${l.title} ${l.locations}`.toLowerCase().includes(q)),
       ),
-    [listings, category, newOnly, alumniOnly, hideApplied, applied, q, now],
+    [listings, category, newOnly, alumniOnly, hideApplied, applied, q, now, alumniAt],
   );
 
   // Back to the first page whenever the filters change.
@@ -158,51 +178,112 @@ export function InternshipBoard({ listings, source }: { listings: Listing[]; sou
         <ul className="mt-3 space-y-3">
           {filtered.slice(0, shown).map((l) => {
             const done = applied.has(l.id);
+            const alums = alumniAt[l.company];
+            const expanded = openAlumni === l.id;
             return (
               <li
                 key={l.id}
-                className={`flex flex-col gap-3 rounded-xl border bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 ${
-                  done ? "border-green-600/30 bg-green-50/40" : "border-line"
-                }`}
+                className={`rounded-xl border bg-white p-4 sm:p-5 ${done ? "border-green-600/30 bg-green-50/40" : "border-line"}`}
               >
-                <div className="min-w-0">
-                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="font-semibold text-navy">{l.company}</span>
-                    <span className="rounded-full bg-paper-alt px-2 py-0.5 text-xs text-muted">{l.category}</span>
-                    {l.alumni > 0 && (
-                      <Link
-                        href={`/portal/alumni?q=${encodeURIComponent(l.company)}`}
-                        className="rounded-full bg-gold-soft px-2 py-0.5 text-xs font-semibold text-navy ring-1 ring-inset ring-gold/40 hover:ring-gold"
-                      >
-                        ★ {l.alumni} {l.alumni === 1 ? "alum" : "alumni"} here
-                      </Link>
-                    )}
-                  </p>
-                  <p className="mt-1 text-ink">{l.title}</p>
-                  <p className="mt-0.5 text-sm text-muted">
-                    {l.locations || "Location not listed"} · {ago(l.posted, now)}
-                  </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="font-semibold text-navy">{l.company}</span>
+                      <span className="rounded-full bg-paper-alt px-2 py-0.5 text-xs text-muted">{l.category}</span>
+                      {alums && (
+                        <button
+                          type="button"
+                          onClick={() => setOpenAlumni(expanded ? null : l.id)}
+                          aria-expanded={expanded}
+                          aria-controls={`alumni-${l.id}`}
+                          className="rounded-full bg-gold-soft px-2.5 py-0.5 text-xs font-semibold text-navy ring-1 ring-inset ring-gold/40 hover:ring-gold"
+                        >
+                          ★ {alums.length} Pi Omega {alums.length === 1 ? "alum" : "alumni"} {expanded ? "▴" : "▾"}
+                        </button>
+                      )}
+                    </p>
+                    <p className="mt-1 text-ink">{l.title}</p>
+                    <p className="mt-0.5 text-sm text-muted">
+                      {l.locations || "Location not listed"} · {ago(l.posted, now)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggle(l.id)}
+                      aria-pressed={done}
+                      className={`rounded-full px-4 py-2 text-sm font-medium ring-1 ring-inset ${
+                        done ? "bg-green-600 text-white ring-green-600" : "text-muted ring-line hover:ring-navy"
+                      }`}
+                    >
+                      {done ? "✓ Applied" : "Mark applied"}
+                    </button>
+                    <a
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-white hover:bg-navy-deep"
+                    >
+                      Apply<span className="sr-only"> to {l.company}, {l.title} (opens in a new tab)</span> ↗
+                    </a>
+                  </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggle(l.id)}
-                    aria-pressed={done}
-                    className={`rounded-full px-4 py-2 text-sm font-medium ring-1 ring-inset ${
-                      done ? "bg-green-600 text-white ring-green-600" : "text-muted ring-line hover:ring-navy"
-                    }`}
-                  >
-                    {done ? "✓ Applied" : "Mark applied"}
-                  </button>
-                  <a
-                    href={l.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-white hover:bg-navy-deep"
-                  >
-                    Apply<span className="sr-only"> to {l.company}, {l.title} (opens in a new tab)</span> ↗
-                  </a>
-                </div>
+
+                {alums && expanded && (
+                  <div id={`alumni-${l.id}`} className="mt-4 rounded-lg bg-gold-soft/50 p-3 sm:p-4">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-navy">
+                      Pi Omega alumni at {l.company}
+                    </p>
+                    <ul className="mt-2 divide-y divide-gold/20">
+                      {alums.map((a) => (
+                        <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                          <div className="min-w-0">
+                            <p className="font-medium text-ink">
+                              {a.name}
+                              {a.gradYear && <span className="font-normal text-muted"> · Class of {a.gradYear}</span>}
+                            </p>
+                            <p className="text-sm text-muted">
+                              {a.current ? (
+                                <>
+                                  {a.position ? `${a.position} at ` : "Works at "}
+                                  {a.company}
+                                </>
+                              ) : (
+                                <>Previously at {a.company}</>
+                              )}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 gap-2">
+                            {a.linkedin && (
+                              <a
+                                href={a.linkedin}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-navy ring-1 ring-inset ring-line hover:ring-navy"
+                              >
+                                LinkedIn ↗
+                              </a>
+                            )}
+                            {a.email && (
+                              <a
+                                href={`mailto:${a.email}`}
+                                className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-navy ring-1 ring-inset ring-line hover:ring-navy"
+                              >
+                                Email
+                              </a>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link
+                      href={`/portal/alumni?q=${encodeURIComponent(l.company)}`}
+                      className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
+                    >
+                      See them in the alumni directory (coffee chat drafts, career paths)
+                    </Link>
+                  </div>
+                )}
               </li>
             );
           })}

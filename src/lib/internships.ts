@@ -77,11 +77,36 @@ async function load(): Promise<Internship[]> {
   return out.sort((a, b) => b.posted - a.posted);
 }
 
-/** "Goldman Sachs & Co. LLC" and "goldman sachs" both become "goldmansachs". */
-export function companyKey(name: string) {
-  return name
+const SUFFIXES = new Set(["inc", "llc", "ltd", "corp", "corporation", "co", "plc", "lp", "llp"]);
+
+/** "Goldman Sachs & Co. LLC" → ["goldman", "sachs"]; "J.P. Morgan" → ["j", "p", "morgan"]. */
+export function companyTokens(name: string) {
+  const words = name
     .toLowerCase()
     .replace(/&/g, " and ")
-    .replace(/\b(inc|llc|ltd|corp|corporation|co|company|plc|lp|llp|group|holdings|the)\b\.?/g, " ")
-    .replace(/[^a-z0-9]/g, "");
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+  // Legal endings only count at the end ("Capital Group" stays "capital group").
+  while (words.length > 1 && SUFFIXES.has(words[words.length - 1])) words.pop();
+  if (words.length > 1 && words[0] === "the") words.shift();
+  return words;
+}
+
+/**
+ * Same company? True when the shorter name, with spaces dropped, equals the
+ * first few whole words of the longer one: "Booz Allen" = "Booz Allen
+ * Hamilton", "J.P. Morgan" = "JPMorgan Chase", "Nvidia" = "NVIDIA Corp".
+ * Whole words only, so "Meta" never matches "Metawave".
+ */
+export function sameCompany(a: string[], b: string[]) {
+  if (!a.length || !b.length) return false;
+  const [short, long] = a.join("").length <= b.join("").length ? [a, b] : [b, a];
+  const target = short.join("");
+  let joined = "";
+  for (const word of long) {
+    joined += word;
+    if (joined === target) return true;
+    if (joined.length >= target.length) return false;
+  }
+  return false;
 }
