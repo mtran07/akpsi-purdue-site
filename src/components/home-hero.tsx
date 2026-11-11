@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import heroPhoto from "../../public/images/chapter/pi-omega-chapter.jpg";
+import heroPhoto from "../../public/images/chapter/home-hero.jpg";
 
 /*
   Full-screen home hero: the chapter photo fades in and drifts slowly behind
@@ -11,8 +11,8 @@ import heroPhoto from "../../public/images/chapter/pi-omega-chapter.jpg";
   with the button (WCAG 2.2.2) and doesn't run at all with "reduce motion" on.
   Styles: .hero-* in globals.css.
 
-  To change the photo: replace public/images/chapter/pi-omega-chapter.jpg
-  (a sharp photo at least ~2000px wide looks best).
+  To change the photo: replace public/images/chapter/home-hero.jpg with a
+  roughly 16:9 photo. Very wide panoramas are slow to draw while they move.
 */
 type Props = {
   eyebrow: string;
@@ -36,7 +36,9 @@ export function HomeHero({ eyebrow, lead, emphasis, intro, primary, secondary }:
           src={heroPhoto}
           alt=""
           fill
-          sizes="100vw"
+          // Cropped to 16:9 so the browser never has to draw a 3,000px panorama
+          // (that made clicks wait). Phones in portrait show the middle, ~1.8× screen height wide.
+          sizes="(orientation: portrait) 180vh, 100vw"
           placeholder="blur"
           preload
           className="hero-photo object-cover"
