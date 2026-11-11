@@ -240,6 +240,16 @@ anyone can read both with View Source. Once the portal works:
 
 ---
 
+## Approvals and welcome emails
+
+When someone is approved, they get an email with a **Sign in to the portal** button, so they know they're in.
+
+- **From the exec dashboard:** each access request has **Approve** and **Decline**. Approve sets Status to Active and sends the email. Decline sets it to Inactive, with no email, and that address can't request again.
+- **From the sheet:** changing a Status to **Active** on the Members tab sends the same email. This needs a one-time setup: in the Apps Script editor, pick **installWelcomeTrigger** in the function dropdown, click **Run**, and allow the permissions it asks for. It's safe to run again.
+- A **Welcome sent** column on the Members tab records when each email went out, so nobody gets it twice. When the column first appears, everyone already active is marked "Already a member", so sorting or pasting on the tab never emails the whole chapter. Pasting more than 25 rows at once never sends anything.
+- The link goes to `SITE_URL/sign-in`. `SITE_URL` defaults to https://www.akpsipurdue.com. Until the domain points at Vercel, set the script property `SITE_URL` to https://akpsi-purdue-site.vercel.app.
+- Emails come from the Google account that owns the script, under the name "AKPsi Pi Omega". Replies go to that account.
+
 ## Chapter check-in (QR)
 
 Officers open **Portal → Chapter check-in** (also linked from the exec dashboard) at the start of chapter:

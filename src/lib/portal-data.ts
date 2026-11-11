@@ -271,6 +271,17 @@ export async function fetchDashboard(email: string): Promise<ExecDashboard> {
   return data;
 }
 
+/** Approve (Active + welcome email) or decline (Inactive) a Pending access request. */
+export async function decideMember(officerEmail: string, email: string, decision: "approve" | "decline") {
+  const result = await postScript<{ result: "approved" | "declined" | "not-pending" | "not-found"; emailed?: boolean }>(
+    "member-decide",
+    { officerEmail, email, decision },
+  );
+  dashboardCache = null;
+  memberCache = null;
+  return result;
+}
+
 /* ---------------- Chapter check-in ---------------- */
 
 // The session changes rarely and is read on every scan, so it's kept for a few
