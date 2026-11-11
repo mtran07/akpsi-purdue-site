@@ -1440,6 +1440,46 @@ function onMembersEdit(e) {
 }
 
 /**
+ * Run from the editor to send the welcome email to brothers who were already
+ * approved before welcome emails existed (rows marked "Already a member").
+ * Gmail limits how many emails a script can send per day (about 100 for a
+ * personal account), so this stops at the limit; run it again tomorrow to
+ * finish. Each brother is emailed once and stamped with the date.
+ */
+function sendWelcomeToExisting() {
+  var props = PropertiesService.getScriptProperties();
+  var sheet = SpreadsheetApp.openById(props.getProperty('SHEET_ID')).getSheetByName(MEMBERS_TAB);
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) throw new Error('Busy, try again in a minute.');
+  try {
+    var welcomeCol = welcomeColumn_(sheet);
+    var values = sheet.getDataRange().getValues();
+    var emailCol = findColumns_(values[0], ['email', 'emailaddress', 'googleemail'])[0];
+    var nameCol = findColumns_(values[0], ['name', 'fullname'])[0];
+    var statusCol = findColumns_(values[0], ['status', 'active'])[0];
+    var sent = 0, left = 0, quota = MailApp.getRemainingDailyQuota();
+    for (var i = 1; i < values.length; i++) {
+      var status = statusCol === undefined ? '' : String(values[i][statusCol] || '').trim().toLowerCase();
+      var email = String(values[i][emailCol] || '').trim().toLowerCase();
+      if (ALLOWED_STATUSES.indexOf(status) === -1 || String(values[i][welcomeCol - 1]).trim() !== 'Already a member') continue;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue;
+      if (sent >= quota) { left++; continue; }
+      try {
+        sendWelcome_(email, nameCol === undefined ? '' : String(values[i][nameCol] || '').trim());
+        sheet.getRange(i + 1, welcomeCol).setValue(new Date());
+        sent++;
+      } catch (err) {
+        left++;
+        quota = sent; // Gmail stopped us; the rest wait for tomorrow.
+      }
+    }
+    Logger.log('Sent ' + sent + ' welcome email(s).' + (left ? ' ' + left + ' left: Gmail\'s daily limit was reached, so run this again tomorrow.' : ' Everyone is done.'));
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
  * Dashboard Approve / Decline for a Pending request. Approve sets Status to
  * Active and sends the welcome email; Decline sets it to Inactive (no email),
  * which also stops that address from asking again.
