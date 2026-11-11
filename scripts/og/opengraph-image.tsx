@@ -50,7 +50,7 @@ export default async function Image() {
           </div>
           <div style={{ fontSize: 44, fontWeight: 700, color: "#c9a227", marginTop: 20 }}>Shaping People, Shaping Business.</div>
           <div style={{ fontSize: 26, color: "rgba(255,255,255,0.85)", marginTop: 36, maxWidth: 820 }}>
-            Purdue&apos;s gender-inclusive professional business fraternity, open to every major.
+            Purdue&apos;s premier professional business fraternity, open to every major.
           </div>
           <div style={{ display: "flex", alignItems: "center", marginTop: 48 }}>
             <div style={{ width: 64, height: 4, background: "#c9a227" }} />

@@ -16,7 +16,7 @@ export default function HomePage() {
         eyebrow={`${site.school} · ${site.chapter}`}
         lead="Shaping People,"
         emphasis="Shaping Business."
-        intro="Purdue's gender-inclusive professional business fraternity, open to every major."
+        intro="Purdue's premier professional business fraternity, open to every major."
         primary={{ href: "/rush", label: rush.isOpen ? `Rush ${rush.term}` : "Rush info" }}
         secondary={{ href: "/portal", label: "Brother portal" }}
       />
