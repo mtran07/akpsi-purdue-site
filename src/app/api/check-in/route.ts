@@ -6,7 +6,7 @@ import { fetchCheckinState, isPortalConfigured } from "@/lib/portal-data";
   Where the chapter check-in QR code points. Checks the rotating code right
   away (before any sign-in, so a slow Google sign-in can't make it expire),
   then hands the phone a short ticket and sends it to /portal/check-in,
-  where the brother taps "Check me in". Nothing is recorded here.
+  where the brother taps "Check Me In". Nothing is recorded here.
 */
 export async function GET(request: NextRequest) {
   const session = request.nextUrl.searchParams.get("s") ?? "";

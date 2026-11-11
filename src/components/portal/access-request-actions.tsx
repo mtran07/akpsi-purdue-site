@@ -42,7 +42,7 @@ export function AccessRequestActions({ email, name }: { email: string; name: str
               onClick={() => decide("decline")}
               className="rounded-full bg-red-700 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
             >
-              Yes, decline
+              Yes, Decline
             </button>
             <button type="button" onClick={() => setConfirmDecline(false)} className="text-xs text-muted underline">
               Cancel

@@ -107,29 +107,29 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
         className="flex items-center justify-between gap-6 rounded-xl bg-navy p-5 text-white transition hover:bg-navy-deep"
       >
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Chapter check-in</p>
-          <p className="mt-1 font-display text-xl font-bold">Start the QR check-in for chapter</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold">Chapter Check-In</p>
+          <p className="mt-1 font-display text-xl font-bold">Start the QR Check-In for Chapter</p>
         </div>
         <span aria-hidden className="text-2xl text-gold">→</span>
       </a>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Tile label="Portal access" value={String(data.members.activeEmails)} hint="active emails on Members" />
-        <Tile label="Waiting for approval" value={String(pending.length)} hint={pending.length ? "access requests" : "all caught up"} />
+        <Tile label="Portal Access" value={String(data.members.activeEmails)} hint="active emails on Members" />
+        <Tile label="Waiting for Approval" value={String(pending.length)} hint={pending.length ? "access requests" : "all caught up"} />
         <Tile
-          label="Mid-semester goal"
+          label="Mid-Semester Goal"
           value={points ? `${points.metMid}/${points.brothers}` : "–"}
           hint={points ? `brothers on track · avg ${fmt(points.average)} pts` : "points sheet not connected"}
         />
         <Tile
-          label="Last chapter"
+          label="Last Chapter"
           value={lastRate === null ? "–" : `${lastRate}%`}
           hint={lastMeeting ? `attendance · ${lastMeeting.date}` : "no attendance yet"}
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="Access requests" action={{ href: data.sheetUrl, label: "Members tab" }}>
+        <Panel title="Access Requests" action={{ href: data.sheetUrl, label: "Members Tab" }}>
           {pending.length === 0 ? (
             <Empty>No one is waiting. New requests show up here.</Empty>
           ) : (
@@ -156,11 +156,11 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
           )}
         </Panel>
 
-        <Panel title="Chapter attendance" action={points ? { href: points.sheetUrl, label: "Points sheet" } : undefined}>
+        <Panel title="Chapter Attendance" action={points ? { href: points.sheetUrl, label: "Points Sheet" } : undefined}>
           {points ? <Attendance meetings={points.meetings} /> : <Empty>Connect the points sheet (POINTS_SHEET_ID) to see attendance.</Empty>}
         </Panel>
 
-        <Panel title="Behind on points" action={points ? { href: points.sheetUrl, label: "Points sheet" } : undefined}>
+        <Panel title="Behind on Points" action={points ? { href: points.sheetUrl, label: "Points Sheet" } : undefined}>
           {!points ? (
             <Empty>Connect the points sheet to see who&apos;s behind.</Empty>
           ) : points.behind.length === 0 ? (
@@ -198,7 +198,7 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
           )}
         </Panel>
 
-        <Panel title="Recent excusal requests" action={{ href: data.sheetUrl, label: "Excusals tab" }}>
+        <Panel title="Recent Excusal Requests" action={{ href: data.sheetUrl, label: "Excusals Tab" }}>
           {data.excusals.length === 0 ? (
             <Empty>No excusal requests yet.</Empty>
           ) : (
@@ -238,7 +238,7 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
         </Panel>
       </div>
 
-      <Panel title="Website messages" action={{ href: data.sheetUrl, label: "Contact tab" }}>
+      <Panel title="Website Messages" action={{ href: data.sheetUrl, label: "Contact Tab" }}>
         {data.contact.length === 0 ? (
           <Empty>No messages from the contact form yet.</Empty>
         ) : (

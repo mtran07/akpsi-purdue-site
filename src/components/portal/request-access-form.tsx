@@ -45,7 +45,7 @@ export function RequestAccessForm({ defaultName }: { defaultName: string }) {
   return (
     <form action={formAction} className="mt-6 space-y-3">
       <label htmlFor="request-name" className="block text-sm font-medium text-ink">
-        Full name
+        Full Name
       </label>
       <div className="flex flex-col gap-3 sm:flex-row">
         <input
@@ -63,7 +63,7 @@ export function RequestAccessForm({ defaultName }: { defaultName: string }) {
           disabled={isPending}
           className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-deep disabled:opacity-60"
         >
-          {isPending ? "Checking…" : "Request access"}
+          {isPending ? "Checking…" : "Request Access"}
         </button>
       </div>
       {message && (

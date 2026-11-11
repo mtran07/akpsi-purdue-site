@@ -74,14 +74,14 @@ export function BrotherRoster({ brothers, withContact = false }: { brothers: Bro
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={withContact ? "Search name, major or email" : "Search name or major"}
-          aria-label="Search brothers"
+          aria-label="Search Brothers"
           className="min-w-0 flex-1 rounded-full border border-line bg-white px-4 py-2.5 text-ink focus:border-navy focus:outline-none"
         />
         <div className="flex gap-3">
           <select
             value={pledgeClass}
             onChange={(e) => setPledgeClass(e.target.value)}
-            aria-label="Pledge class"
+            aria-label="Pledge Class"
             className="min-w-0 flex-1 rounded-full border border-line bg-white px-4 py-2.5 text-sm text-ink sm:flex-none"
           >
             <option value="">All classes</option>
@@ -99,7 +99,7 @@ export function BrotherRoster({ brothers, withContact = false }: { brothers: Bro
           >
             <option value="pledge">By pledge class</option>
             <option value="name">A–Z</option>
-            <option value="year">Class year</option>
+            <option value="year">Class Year</option>
           </select>
         </div>
       </div>

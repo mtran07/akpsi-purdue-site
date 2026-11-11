@@ -17,7 +17,7 @@ import { isPortalConfigured } from "@/lib/portal-data";
 export default function PortalPage(props: PageProps<"/portal">) {
   return (
     <>
-      <PageHeader eyebrow="For brothers" title="Member portal" />
+      <PageHeader eyebrow="For Brothers" title="Member Portal" />
       <Section>
         {/* Everything that depends on who's signed in streams in behind this boundary. */}
         <Suspense fallback={<PanelSkeleton />}>
@@ -55,7 +55,7 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
       <PortalCallouts officerPosition={officer ? officer.position : null} />
 
       <div>
-        <h2 className="font-display text-2xl font-bold text-navy">Upcoming events</h2>
+        <h2 className="font-display text-2xl font-bold text-navy">Upcoming Events</h2>
         <div className="mt-6">
           <Suspense fallback={<PanelSkeleton />}>
             <Events />
@@ -64,7 +64,7 @@ async function PortalContent({ searchParams }: { searchParams: PageProps<"/porta
       </div>
 
       <div>
-        <h2 className="font-display text-2xl font-bold text-navy">Brother resources</h2>
+        <h2 className="font-display text-2xl font-bold text-navy">Brother Resources</h2>
         <div className="mt-6">
           <Suspense fallback={<PanelSkeleton />}>
             <Resources />

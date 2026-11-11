@@ -7,19 +7,19 @@ import { BrotherRoster } from "@/components/brother-roster";
 import { getBrothersForMember } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 
-export const metadata: Metadata = { title: "Brother directory" };
+export const metadata: Metadata = { title: "Brother Directory" };
 
 export default function BrothersPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Member portal"
-        title="Brother directory"
+        eyebrow="Member Portal"
+        title="Brother Directory"
         intro="Contact info for active brothers. For brothers only: please don't share it outside AKPsi."
       />
       <Section>
         <Link href="/portal" className="text-sm font-medium text-navy underline underline-offset-4">
-          ← Back to the portal
+          ← Back to the Portal
         </Link>
         <div className="mt-8">
           <Suspense fallback={<DirectorySkeleton />}>

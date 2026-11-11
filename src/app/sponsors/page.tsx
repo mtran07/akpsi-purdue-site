@@ -18,7 +18,7 @@ export default function SponsorsPage() {
       />
 
       {employers.sponsors.length > 0 && (
-        <Section title="Our sponsors">
+        <Section title="Our Sponsors">
           <ul className="flex flex-wrap gap-3">
             {employers.sponsors.map((sponsor: string) => (
               <li key={sponsor} className="rounded-full border border-line px-4 py-2 text-sm font-medium">
@@ -42,7 +42,7 @@ export default function SponsorsPage() {
         </ul>
       </Section>
 
-      <Section title="Interested in sponsoring?">
+      <Section title="Interested in Sponsoring?">
         <p className="max-w-2xl text-muted">
           We host resume workshops, company info sessions and networking nights each semester. Reach out and our
           professional external team will follow up.
@@ -51,7 +51,7 @@ export default function SponsorsPage() {
           href="/contact"
           className="mt-6 inline-block rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-deep"
         >
-          Contact us
+          Contact Us
         </Link>
       </Section>
     </>

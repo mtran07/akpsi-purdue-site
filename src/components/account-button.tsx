@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 /*
-  The top-right "Sign in" / "Portal" button. Pages stay static, so the
+  The top-right "Sign In" / "Portal" button. Pages stay static, so the
   browser asks Auth.js who's signed in (/api/auth/session) and re-asks after
   each navigation, which catches signing in and out.
 */
@@ -57,7 +57,7 @@ export function AccountButton() {
         who.state === "loading" ? "invisible" : ""
       }`}
     >
-      Sign in
+      Sign In
     </Link>
   );
 }
@@ -69,7 +69,7 @@ export function MobileAccountLink() {
       href={who.state === "in" ? "/portal" : "/sign-in"}
       className="mt-2 block border-t border-white/10 px-3 pb-3 pt-4 text-base font-semibold text-gold hover:text-white"
     >
-      {who.state === "in" ? `Member portal · ${who.name.split(" ")[0]}` : "Sign in"}
+      {who.state === "in" ? `Member Portal · ${who.name.split(" ")[0]}` : "Sign In"}
     </Link>
   );
 }

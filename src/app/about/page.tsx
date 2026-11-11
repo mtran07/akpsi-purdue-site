@@ -17,15 +17,15 @@ export default function AboutPage() {
         intro={`Founded nationally in ${site.founded.fraternity}; at Purdue since ${site.founded.chapter}.`}
       />
 
-      <Section title="Our fraternity">
+      <Section title="Our Fraternity">
         <p className="reveal max-w-3xl text-lg leading-relaxed text-muted">{about.fraternity}</p>
       </Section>
 
-      <Section title="Our mission" tone="alt">
+      <Section title="Our Mission" tone="alt">
         <p className="reveal max-w-3xl text-lg leading-relaxed text-muted">{about.mission}</p>
       </Section>
 
-      <Section title="Core values">
+      <Section title="Core Values">
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {about.values.map((value, index) => (
             <li key={value.name} className="reveal rounded-xl border border-line bg-white p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0">

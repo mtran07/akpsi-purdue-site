@@ -7,19 +7,19 @@ import { ProfileForm } from "@/components/portal/profile-form";
 import { getMyProfile } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 
-export const metadata: Metadata = { title: "My profile" };
+export const metadata: Metadata = { title: "My Profile" };
 
 export default function ProfilePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Member portal"
-        title="My profile"
+        eyebrow="Member Portal"
+        title="My Profile"
         intro="Keep your info current. It updates the brother directory and the public roster."
       />
       <Section>
         <Link href="/portal" className="text-sm font-medium text-navy underline underline-offset-4">
-          ← Back to the portal
+          ← Back to the Portal
         </Link>
         <div className="mt-8">
           <Suspense fallback={<div className="h-96 max-w-2xl animate-pulse rounded-xl bg-paper-alt" />}>

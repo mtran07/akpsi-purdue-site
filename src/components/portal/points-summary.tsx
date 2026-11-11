@@ -69,7 +69,7 @@ export function PointsSummary({ points }: { points: Found }) {
 
       {attendance.length > 0 && (
         <div>
-          <h2 className="font-display text-2xl font-bold text-navy">Chapter attendance</h2>
+          <h2 className="font-display text-2xl font-bold text-navy">Chapter Attendance</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {(Object.keys(STATUS) as PointsStatus[])
               .filter((s) => counts[s])
@@ -96,7 +96,7 @@ export function PointsSummary({ points }: { points: Found }) {
             <p className="mt-3 text-sm text-muted">
               Missing something you had a reason for?{" "}
               <Link href="/portal/excuse" className="font-medium text-navy underline underline-offset-4">
-                Send an excusal request
+                Send an Excusal Request
               </Link>
               .
             </p>
@@ -105,7 +105,7 @@ export function PointsSummary({ points }: { points: Found }) {
       )}
 
       <div>
-        <h2 className="font-display text-2xl font-bold text-navy">Points earned</h2>
+        <h2 className="font-display text-2xl font-bold text-navy">Points Earned</h2>
         {earned.length === 0 ? (
           <p className="mt-4 text-muted">No points logged yet this semester.</p>
         ) : (

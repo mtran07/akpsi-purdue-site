@@ -32,11 +32,11 @@ export function AlumniInsights({ alumni }: { alumni: AlumRow[] }) {
       </dl>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <BarList title="Top companies" rows={topCounts(alumni.map((a) => a.company ?? ""))} />
-        <BarList title="Top sectors" rows={topCounts(alumni.map((a) => a.sectorGroup))} />
-        <BarList title="Top states" rows={topCounts(realStates)} />
-        <BarList title="Top majors" rows={topCounts(alumni.map((a) => a.majorGroup))} />
-        <BarList title="Alumni by graduation year" rows={years} note="Most recent 10 classes" />
+        <BarList title="Top Companies" rows={topCounts(alumni.map((a) => a.company ?? ""))} />
+        <BarList title="Top Sectors" rows={topCounts(alumni.map((a) => a.sectorGroup))} />
+        <BarList title="Top States" rows={topCounts(realStates)} />
+        <BarList title="Top Majors" rows={topCounts(alumni.map((a) => a.majorGroup))} />
+        <BarList title="Alumni by Graduation Year" rows={years} note="Most recent 10 classes" />
       </div>
     </div>
   );

@@ -7,19 +7,19 @@ import { ExecDashboardView } from "@/components/portal/exec-dashboard";
 import { getDashboardForOfficer } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 
-export const metadata: Metadata = { title: "Exec dashboard" };
+export const metadata: Metadata = { title: "Exec Dashboard" };
 
 export default function ExecPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Member portal · Officers"
-        title="Exec dashboard"
+        eyebrow="Member Portal · Officers"
+        title="Exec Dashboard"
         intro="Access requests, points, attendance, excusals and website messages in one place."
       />
       <Section>
         <Link href="/portal" className="text-sm font-medium text-navy underline underline-offset-4">
-          ← Back to the portal
+          ← Back to the Portal
         </Link>
         <div className="mt-8">
           <Suspense fallback={<DashboardSkeleton />}>

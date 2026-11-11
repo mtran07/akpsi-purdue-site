@@ -11,7 +11,7 @@ import { getViewer } from "@/lib/dal";
 import { fetchCheckinState, isPortalConfigured } from "@/lib/portal-data";
 import { signInForCheckIn } from "./actions";
 
-export const metadata: Metadata = { title: "Check in", robots: { index: false } };
+export const metadata: Metadata = { title: "Check In", robots: { index: false } };
 
 const ERRORS: Record<string, string> = {
   expired: "That code expired. Scan the code on the screen in the room. It changes every 30 seconds.",
@@ -22,7 +22,7 @@ const ERRORS: Record<string, string> = {
 export default function CheckInPage({ searchParams }: PageProps<"/portal/check-in">) {
   return (
     <>
-      <PageHeader eyebrow="Member portal" title="Chapter check-in" />
+      <PageHeader eyebrow="Member Portal" title="Chapter Check-In" />
       <Section>
         <div className="mx-auto max-w-md">
           <Suspense fallback={<div className="h-56 animate-pulse rounded-xl bg-paper-alt" />}>
@@ -43,11 +43,11 @@ async function CheckIn({ searchParams }: { searchParams: PageProps<"/portal/chec
   if (viewer.status === "signed-out") {
     return (
       <Card>
-        <h2 className="font-display text-2xl font-bold text-navy">Sign in to check in</h2>
+        <h2 className="font-display text-2xl font-bold text-navy">Sign In to Check In</h2>
         <p className="mt-2 text-muted">Use the Google account you use for the brother portal. You&apos;ll come right back here.</p>
         <form action={signInForCheckIn} className="mt-6">
           <button className="w-full rounded-full bg-navy px-6 py-3 font-semibold text-white hover:bg-navy-deep">
-            Sign in with Google
+            Sign In with Google
           </button>
         </form>
       </Card>
@@ -104,12 +104,12 @@ function CheckedInAlready({ at }: { at: number }) {
 function Problem({ message }: { message: string }) {
   return (
     <Card>
-      <h2 className="font-display text-2xl font-bold text-navy">Can&apos;t check in</h2>
+      <h2 className="font-display text-2xl font-bold text-navy">Can&apos;t Check In</h2>
       <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">
         {message}
       </p>
       <Link href="/portal" className="mt-6 inline-block text-sm font-medium text-navy underline underline-offset-4">
-        Go to the portal
+        Go to the Portal
       </Link>
     </Card>
   );

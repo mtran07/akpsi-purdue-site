@@ -7,19 +7,19 @@ import { AlumniDirectory } from "@/components/portal/alumni-directory";
 import { getAlumniForMember } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 
-export const metadata: Metadata = { title: "Alumni directory" };
+export const metadata: Metadata = { title: "Alumni Directory" };
 
 export default function AlumniPage(props: PageProps<"/portal/alumni">) {
   return (
     <>
       <PageHeader
-        eyebrow="Member portal"
-        title="Alumni directory"
+        eyebrow="Member Portal"
+        title="Alumni Directory"
         intro="Pi Omega alumni who've shared their details with the chapter. For brothers only: please don't share contact info outside AKPsi."
       />
       <Section>
         <Link href="/portal" className="text-sm font-medium text-navy underline underline-offset-4">
-          ← Back to the portal
+          ← Back to the Portal
         </Link>
         <div className="mt-8">
           <Suspense fallback={<DirectorySkeleton />}>

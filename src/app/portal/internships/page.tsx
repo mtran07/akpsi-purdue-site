@@ -14,13 +14,13 @@ export default function InternshipsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Member portal"
+        eyebrow="Member Portal"
         title={`${INTERNSHIP_TERM} internships`}
         intro="Open tech, product, data and quant internships, updated hourly. Tap Apply to go straight to the application, and tap the ★ badge to see Pi Omega alumni who work or worked there."
       />
       <Section>
         <Link href="/portal" className="text-sm font-medium text-navy underline underline-offset-4">
-          ← Back to the portal
+          ← Back to the Portal
         </Link>
         <div className="mt-8">
           <Suspense fallback={<BoardSkeleton />}>

@@ -47,10 +47,10 @@ export function ProfileForm({ profile }: { profile: Brother & { show: boolean } 
       </div>
 
       <fieldset className="grid gap-5 sm:grid-cols-2">
-        <legend className="mb-4 text-xs font-semibold uppercase tracking-widest text-gold">About you</legend>
-        <Field label="Pledge class" name="pledgeClass" defaultValue={profile.pledgeClass} maxLength={40} placeholder="e.g. Beta Alpha" />
+        <legend className="mb-4 text-xs font-semibold uppercase tracking-widest text-gold">About You</legend>
+        <Field label="Pledge Class" name="pledgeClass" defaultValue={profile.pledgeClass} maxLength={40} placeholder="e.g. Beta Alpha" />
         <Field
-          label="Class year"
+          label="Class Year"
           name="gradYear"
           defaultValue={profile.gradYear}
           inputMode="numeric"
@@ -68,7 +68,7 @@ export function ProfileForm({ profile }: { profile: Brother & { show: boolean } 
         <legend className="mb-4 text-xs font-semibold uppercase tracking-widest text-gold">Contact (brothers only)</legend>
         <Field label="Phone" name="phone" type="tel" autoComplete="tel" defaultValue={profile.phone} maxLength={30} placeholder="(317) 555-0101" />
         <Field
-          label="Personal email"
+          label="Personal Email"
           name="personalEmail"
           type="email"
           autoComplete="email"
@@ -104,7 +104,7 @@ export function ProfileForm({ profile }: { profile: Brother & { show: boolean } 
           disabled={isPending}
           className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-deep disabled:opacity-60"
         >
-          {isPending ? "Saving…" : "Save changes"}
+          {isPending ? "Saving…" : "Save Changes"}
         </button>
         {state.status === "saved" && !isPending && (
           <p role="status" className="text-sm font-medium text-green-700">

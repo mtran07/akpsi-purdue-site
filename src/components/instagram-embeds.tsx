@@ -103,7 +103,7 @@ function PostEmbed({ post }: { post: Post & { link: string } }) {
           rel="noreferrer"
           className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border border-line bg-white p-6 text-center text-navy transition hover:border-navy"
         >
-          <span className="font-semibold">{post.label ?? "View this post"}</span>
+          <span className="font-semibold">{post.label ?? "View This Post"}</span>
           <span className="text-sm text-muted">View on Instagram →</span>
         </a>
       </blockquote>

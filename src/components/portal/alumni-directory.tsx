@@ -160,7 +160,7 @@ export function AlumniDirectory({
           />
           <Select label="City" value={city} all="All cities" options={options.cities} onChange={setCity} />
           <Select label="Sector" value={sector} all="All sectors" options={options.sectors} onChange={setSector} />
-          <Select label="Grad year" value={year} all="Any year" options={options.years} onChange={setYear} />
+          <Select label="Grad Year" value={year} all="Any year" options={options.years} onChange={setYear} />
           <Select label="Major" value={major} all="All majors" options={options.majors} onChange={setMajor} />
           </div>
         </div>
@@ -190,11 +190,11 @@ export function AlumniDirectory({
               me ? "border-gold bg-gold-soft text-navy" : "border-line text-muted hover:text-ink"
             }`}
           >
-            {locating ? "Locating…" : me ? `Near me (${NEAR_ME_MILES} mi) ✕` : "Near me"}
+            {locating ? "Locating…" : me ? `Near me (${NEAR_ME_MILES} mi) ✕` : "Near Me"}
           </button>
           {anyFilter && (
             <button type="button" onClick={clearAll} className="px-2 text-sm font-medium text-navy hover:underline">
-              Clear all
+              Clear All
             </button>
           )}
           <button
@@ -202,7 +202,7 @@ export function AlumniDirectory({
             onClick={() => startRefresh(() => router.refresh())}
             className="ml-auto px-2 text-sm text-muted hover:text-ink"
           >
-            {refreshing ? "Refreshing…" : "Refresh data"}
+            {refreshing ? "Refreshing…" : "Refresh Data"}
           </button>
         </div>
         {locateError && (
@@ -442,7 +442,7 @@ function AlumCard({ alum: a, onCoffeeChat }: { alum: AlumRow; onCoffeeChat?: (al
               onClick={() => onCoffeeChat(a)}
               className="rounded-full bg-navy px-3.5 py-1.5 text-white hover:bg-navy-deep"
             >
-              Coffee chat
+              Coffee Chat
             </button>
           )}
           {a.email && (
@@ -662,7 +662,7 @@ function CoffeeChatDialog({ alum, onClose }: { alum: AlumRow; onClose: () => voi
           disabled={pending}
           className="mt-3 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-navy-deep disabled:opacity-60"
         >
-          {pending ? "Drafting…" : result?.ok ? "Draft again" : "Draft email"}
+          {pending ? "Drafting…" : result?.ok ? "Draft Again" : "Draft Email"}
         </button>
 
         {result && !result.ok && (
@@ -685,7 +685,7 @@ function CoffeeChatDialog({ alum, onClose }: { alum: AlumRow; onClose: () => voi
             <div className="flex flex-wrap gap-3">
               {mailto && (
                 <a href={mailto} className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy hover:brightness-110">
-                  Open in email
+                  Open in Email
                 </a>
               )}
               <button

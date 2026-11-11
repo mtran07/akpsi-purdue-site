@@ -96,7 +96,7 @@ export type ExecDashboard = {
   };
 };
 
-/** The current chapter check-in session (see apps-script/portal.gs, "Chapter check-in"). */
+/** The current chapter check-in session (see apps-script/portal.gs, "Chapter Check-In"). */
 export type CheckinSession = {
   id: string;
   event: string;

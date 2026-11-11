@@ -5,7 +5,7 @@ import { checkInMe, type CheckInResult } from "@/app/portal/check-in/actions";
 
 const timeFormat = new Intl.DateTimeFormat("en-US", { timeZone: "America/Indiana/Indianapolis", hour: "numeric", minute: "2-digit" });
 
-/** "Check me in", asking for the phone's location first if this session needs it. */
+/** "Check Me In", asking for the phone's location first if this session needs it. */
 export function CheckInButton({ needsLocation, event }: { needsLocation: boolean; event: string }) {
   const [state, action, isPending] = useActionState<CheckInResult, FormData>(checkInMe, { status: "idle" });
   const [locating, setLocating] = useState(false);
@@ -46,7 +46,7 @@ export function CheckInButton({ needsLocation, event }: { needsLocation: boolean
           ✓
         </p>
         <p className="mt-3 font-display text-2xl font-bold">
-          {state.status === "already" ? "Already checked in" : "You're checked in"}
+          {state.status === "already" ? "Already Checked In" : "You're checked in"}
         </p>
         <p className="mt-1">
           {event}
@@ -66,7 +66,7 @@ export function CheckInButton({ needsLocation, event }: { needsLocation: boolean
         disabled={busy}
         className="w-full rounded-full bg-navy px-6 py-4 text-lg font-semibold text-white hover:bg-navy-deep disabled:opacity-60"
       >
-        {locating ? "Checking your location…" : isPending ? "Checking you in…" : "Check me in"}
+        {locating ? "Checking your location…" : isPending ? "Checking you in…" : "Check Me In"}
       </button>
       {needsLocation && !busy && (
         <p className="text-center text-sm text-muted">Your phone will ask to share your location once, to confirm you&apos;re at chapter.</p>

@@ -58,7 +58,7 @@ export function ExcusalForm({ events, email }: { events: EventOption[]; email: s
   if (state.status === "sent") {
     return (
       <div role="status" className="max-w-2xl rounded-xl bg-gold-soft p-6 text-navy">
-        <p className="font-display text-xl font-bold">Sent to the secretary</p>
+        <p className="font-display text-xl font-bold">Sent to the Secretary</p>
         <p className="mt-2 text-sm">
           A copy went to <span className="font-medium">{email}</span>. The secretary will reply to that email.
         </p>
@@ -67,7 +67,7 @@ export function ExcusalForm({ events, email }: { events: EventOption[]; email: s
           onClick={() => window.location.reload()}
           className="mt-4 text-sm font-semibold underline underline-offset-4"
         >
-          Send another
+          Send Another
         </button>
       </div>
     );
@@ -144,7 +144,7 @@ export function ExcusalForm({ events, email }: { events: EventOption[]; email: s
             </span>
           )}
           <span className="text-sm text-navy">
-            {preparing ? "Preparing photo…" : proof ? "Change photo" : "Add a photo"}
+            {preparing ? "Preparing photo…" : proof ? "Change Photo" : "Add a Photo"}
           </span>
           <input
             name="proofFile"
@@ -156,7 +156,7 @@ export function ExcusalForm({ events, email }: { events: EventOption[]; email: s
         </label>
         {proof && (
           <button type="button" onClick={() => onPickFile(undefined)} className="mt-2 text-xs text-muted underline">
-            Remove photo
+            Remove Photo
           </button>
         )}
         {proofError && (
@@ -172,7 +172,7 @@ export function ExcusalForm({ events, email }: { events: EventOption[]; email: s
           disabled={isPending || preparing}
           className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-deep disabled:opacity-60"
         >
-          {isPending ? "Sending…" : "Send to secretary"}
+          {isPending ? "Sending…" : "Send to Secretary"}
         </button>
         {state.status === "error" && !isPending && (
           <p role="alert" className="text-sm text-red-700">

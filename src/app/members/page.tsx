@@ -18,11 +18,11 @@ export default function MembersPage() {
     <>
       <PageHeader
         eyebrow="Members"
-        title="Meet the brothers"
+        title="Meet the Brothers"
         intro="The officers, committee heads and active brothers of Pi Omega."
       />
 
-      <Section id="executive-board" title={`Executive board · ${execBoard.term}`}>
+      <Section id="executive-board" title={`Executive Board · ${execBoard.term}`}>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {execBoard.members.map((member) => (
             <PersonCard key={member.name} {...member} />
@@ -30,7 +30,7 @@ export default function MembersPage() {
         </div>
       </Section>
 
-      <Section id="committee-heads" title={`Committee heads · ${committeeHeads.term}`} tone="alt">
+      <Section id="committee-heads" title={`Committee Heads · ${committeeHeads.term}`} tone="alt">
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {committeeHeads.committees.map((item) => (
             <li
@@ -69,7 +69,7 @@ async function ActiveBrothers() {
   // No roster yet, or the sheet is unreachable: leave the section out.
   if (!brothers || brothers.length === 0) return null;
   return (
-    <Section id="brothers" title="Active brothers">
+    <Section id="brothers" title="Active Brothers">
       <BrotherRoster brothers={brothers} />
     </Section>
   );
