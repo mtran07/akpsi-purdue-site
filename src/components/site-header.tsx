@@ -1,6 +1,7 @@
 import Link from "next/link";
 import site from "@/data/site.json";
-import { AccountButton, MobileAccountLink } from "@/components/account-button";
+import { AccountButton } from "@/components/account-button";
+import { MobileMenu } from "@/components/mobile-menu";
 
 export function SiteHeader() {
   return (
@@ -29,28 +30,7 @@ export function SiteHeader() {
           <AccountButton />
         </nav>
 
-        {/* Mobile navigation: <details> keeps it working without client JavaScript */}
-        <details className="group relative md:hidden">
-          <summary className="cursor-pointer list-none rounded-md px-3 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
-            <span className="group-open:hidden">Menu</span>
-            <span className="hidden group-open:inline">Close</span>
-          </summary>
-          <nav
-            aria-label="Main"
-            className="absolute right-0 mt-2 w-56 rounded-lg bg-navy-deep p-2 shadow-xl ring-1 ring-white/10"
-          >
-            {site.nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="block rounded-md px-3 py-2.5 text-sm hover:bg-white/10"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <MobileAccountLink />
-          </nav>
-        </details>
+        <MobileMenu items={site.nav} />
       </div>
     </header>
   );
