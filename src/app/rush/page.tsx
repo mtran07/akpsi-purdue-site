@@ -12,7 +12,7 @@ export default function RushPage() {
     <>
       <PageHeader
         eyebrow={`Rush · ${rush.term}`}
-        title={rush.isOpen ? `${rush.term} rush is open` : "Rush AKΨ"}
+        title={rush.isOpen ? `${rush.term} Rush Is Open` : "Rush AKΨ"}
         intro="Interested in joining our brotherhood? Every major is welcome."
       />
 
@@ -24,7 +24,7 @@ export default function RushPage() {
         </div>
       )}
 
-      <Section title="How to apply">
+      <Section title="How to Apply">
         <p className="max-w-3xl text-lg text-muted">{rush.eligibility}</p>
         {rush.isOpen && (
           <div className="mt-6 flex flex-wrap items-center gap-4">
@@ -34,14 +34,14 @@ export default function RushPage() {
               rel="noreferrer"
               className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-deep"
             >
-              Open the written application
+              Open the Written Application
             </a>
             <p className="text-sm text-muted">Due {rush.applicationDeadline}</p>
           </div>
         )}
       </Section>
 
-      <Section title={`${rush.term} schedule`} tone="alt">
+      <Section title={`${rush.term} Schedule`} tone="alt">
         <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
           {rush.events.map((event) => (
             <li

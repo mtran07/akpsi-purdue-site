@@ -17,11 +17,11 @@ export default function HomePage() {
         lead="Shaping People,"
         emphasis="Shaping Business."
         intro="Purdue's premier professional business fraternity, open to every major."
-        primary={{ href: "/rush", label: rush.isOpen ? `Rush ${rush.term}` : "Rush info" }}
-        secondary={{ href: "/portal", label: "Brother portal" }}
+        primary={{ href: "/rush", label: rush.isOpen ? `Rush ${rush.term}` : "Rush Info" }}
+        secondary={{ href: "/portal", label: "Brother Portal" }}
       />
 
-      <Section id="mission" title="Our mission">
+      <Section id="mission" title="Our Mission">
         <p className="reveal max-w-3xl text-lg leading-relaxed text-muted">{about.mission}</p>
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {about.values.map((value) => (
@@ -61,7 +61,7 @@ export default function HomePage() {
       <section className="bg-gold-soft">
         <div className="reveal mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-4 py-14 sm:px-6 md:flex-row md:items-center">
           <div>
-            <h2 className="font-display text-2xl font-bold text-navy">Interested in joining our brotherhood?</h2>
+            <h2 className="font-display text-2xl font-bold text-navy">Interested in Joining Our Brotherhood?</h2>
             <p className="mt-2 text-muted">
               {rush.isOpen ? `${rush.term} rush is open.` : rush.closedMessage}
             </p>
@@ -70,7 +70,7 @@ export default function HomePage() {
             href="/rush"
             className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-deep"
           >
-            See rush details
+            See Rush Details
           </Link>
         </div>
       </section>

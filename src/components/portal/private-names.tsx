@@ -44,7 +44,7 @@ export function NamesToggle() {
       }`}
     >
       <span aria-hidden>{hidden ? "🙈" : "👀"}</span>
-      {hidden ? "Names hidden · Show names" : "Names showing · Hide names"}
+      {hidden ? "Names Hidden · Show Names" : "Names Showing · Hide Names"}
     </button>
   );
 }

@@ -157,13 +157,13 @@ export function InternshipBoard({
         </div>
         <div className="flex flex-wrap gap-2 border-t border-line pt-4">
           <button type="button" onClick={() => setNewOnly((v) => !v)} aria-pressed={newOnly} className={toggleClass(newOnly)}>
-            New this week
+            New This Week
           </button>
           <button type="button" onClick={() => setAlumniOnly((v) => !v)} aria-pressed={alumniOnly} className={toggleClass(alumniOnly)}>
-            Pi Omega alumni there
+            Pi Omega Alumni There
           </button>
           <button type="button" onClick={() => setHideApplied((v) => !v)} aria-pressed={hideApplied} className={toggleClass(hideApplied)}>
-            Hide applied{appliedCount ? ` (${appliedCount})` : ""}
+            Hide Applied{appliedCount ? ` (${appliedCount})` : ""}
           </button>
         </div>
       </div>
@@ -198,7 +198,7 @@ export function InternshipBoard({
                           aria-controls={`alumni-${l.id}`}
                           className="rounded-full bg-gold-soft px-2.5 py-0.5 text-xs font-semibold text-navy ring-1 ring-inset ring-gold/40 hover:ring-gold"
                         >
-                          ★ {alums.length} Pi Omega {alums.length === 1 ? "alum" : "alumni"} {expanded ? "▴" : "▾"}
+                          ★ {alums.length} Pi Omega {alums.length === 1 ? "Alum" : "Alumni"} {expanded ? "▴" : "▾"}
                         </button>
                       )}
                     </p>
@@ -216,7 +216,7 @@ export function InternshipBoard({
                         done ? "bg-green-600 text-white ring-green-600" : "text-muted ring-line hover:ring-navy"
                       }`}
                     >
-                      {done ? "✓ Applied" : "Mark applied"}
+                      {done ? "✓ Applied" : "Mark Applied"}
                     </button>
                     <a
                       href={l.url}
@@ -232,7 +232,7 @@ export function InternshipBoard({
                 {alums && expanded && (
                   <div id={`alumni-${l.id}`} className="mt-4 rounded-lg bg-gold-soft/50 p-3 sm:p-4">
                     <p className="text-xs font-semibold uppercase tracking-widest text-navy">
-                      Pi Omega alumni at {l.company}
+                      Pi Omega Alumni at {l.company}
                     </p>
                     <ul className="mt-2 divide-y divide-gold/20">
                       {alums.map((a) => (

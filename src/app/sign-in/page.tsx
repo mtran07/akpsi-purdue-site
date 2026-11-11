@@ -11,7 +11,7 @@ import chapterPhoto from "../../../public/images/chapter/pi-omega-chapter.jpg";
 import site from "@/data/site.json";
 
 export const metadata: Metadata = {
-  title: "Sign in to the member portal",
+  title: "Sign In to the Member Portal",
   robots: { index: false, follow: false },
 };
 
@@ -29,7 +29,7 @@ export default function SignInPage(props: PageProps<"/sign-in">) {
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full border-[40px] border-gold/10" />
         <div>
           <p className="font-display text-5xl font-bold text-gold">{site.chapterShort}</p>
-          <p className="mt-4 max-w-md font-display text-3xl font-bold leading-tight">Pi Omega brother portal</p>
+          <p className="mt-4 max-w-md font-display text-3xl font-bold leading-tight">Pi Omega Brother Portal</p>
         </div>
         <Image
           src={chapterPhoto}
@@ -62,8 +62,8 @@ export default function SignInPage(props: PageProps<"/sign-in">) {
               <p className="mt-2 text-sm font-medium tracking-wide text-white/80">Purdue · Pi Omega</p>
             </div>
             <div className="mt-8 rounded-2xl bg-white p-8 shadow-2xl lg:mt-0">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gold">Brothers only</p>
-              <h1 className="mt-2 font-display text-3xl font-bold text-navy">Member portal</h1>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gold">Brothers Only</p>
+              <h1 className="mt-2 font-display text-3xl font-bold text-navy">Member Portal</h1>
               <Suspense fallback={<div className="mt-6 h-32 animate-pulse rounded-xl bg-paper-alt" />}>
                 <SignInForm searchParams={props.searchParams} />
               </Suspense>
@@ -118,7 +118,7 @@ async function SignInForm({ searchParams }: { searchParams: PageProps<"/sign-in"
           className="flex w-full items-center justify-center gap-3 rounded-full bg-navy px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-navy-deep"
         >
           <GoogleMark />
-          Sign in with Google
+          Sign In with Google
         </button>
       </form>
     </>

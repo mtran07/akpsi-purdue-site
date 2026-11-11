@@ -83,7 +83,7 @@ export function HomeHero({ eyebrow, lead, emphasis, intro, primary, secondary }:
       <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-6xl items-center justify-between px-4 pb-6 sm:px-6">
         <a href="#mission" className="hero-cue flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white/70 hover:text-white">
           <span aria-hidden className="hero-cue-arrow text-base">↓</span>
-          Learn more
+          Learn More
         </a>
         <button
           type="button"

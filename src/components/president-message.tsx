@@ -22,7 +22,7 @@ export function PresidentMessage() {
         <div className="reveal">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">From the President</p>
           <h2 id="president-heading" className="mt-3 font-display text-3xl font-bold text-navy sm:text-4xl">
-            A message from our President
+            A Message from Our President
           </h2>
           <div className="mt-6 space-y-4 text-lg leading-relaxed text-muted">
             {president.message.map((paragraph) => (

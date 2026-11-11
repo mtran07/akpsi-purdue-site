@@ -153,7 +153,7 @@ function Projector(props: {
           <p className="text-xs font-semibold uppercase tracking-widest text-gold">
             {props.event} · {props.date}
           </p>
-          <p className="mt-2 font-display text-4xl font-bold">Scan to check in</p>
+          <p className="mt-2 font-display text-4xl font-bold">Scan to Check In</p>
           <p className="mt-3 text-white/80">
             Open your phone camera and point it at the code. You&apos;ll need to be signed in to the brother portal.
             {props.usesLocation && " Your phone will ask to share your location once."}
@@ -173,7 +173,7 @@ function Projector(props: {
               onClick={() => boxRef.current?.requestFullscreen?.().catch(() => {})}
               className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy hover:brightness-110"
             >
-              Full screen for the projector
+              Full Screen for the Projector
             </button>
             <button
               type="button"
@@ -181,7 +181,7 @@ function Projector(props: {
               disabled={props.busy}
               className="rounded-full border border-white/40 px-5 py-2.5 text-sm font-semibold hover:border-white disabled:opacity-60"
             >
-              Close check-in now
+              Close Check-In Now
             </button>
           </div>
         </div>
@@ -225,7 +225,7 @@ function StartForm({
 
   return (
     <div className="rounded-2xl border border-line bg-white p-6 sm:p-8">
-      <h2 className="font-display text-2xl font-bold text-navy">Start check-in</h2>
+      <h2 className="font-display text-2xl font-bold text-navy">Start Check-In</h2>
       {lastSession && <p className="mt-1 text-sm text-muted">Last check-in: {lastSession}</p>}
       <div className="mt-6 grid gap-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <label className="block">
@@ -263,7 +263,7 @@ function StartForm({
           className="mt-1 h-4 w-4 accent-navy"
         />
         <span className="text-sm text-ink">
-          Location check
+          Location Check
           <span className="block text-muted">
             Brothers must be within about 300 m of where you are now. Start it from the meeting room.
           </span>
@@ -275,7 +275,7 @@ function StartForm({
         disabled={busy || locating}
         className="mt-6 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-deep disabled:opacity-60"
       >
-        {locating ? "Getting this room's location…" : busy ? "Starting…" : "Start check-in"}
+        {locating ? "Getting this room's location…" : busy ? "Starting…" : "Start Check-In"}
       </button>
     </div>
   );
@@ -303,7 +303,7 @@ function CheckedInList({
   return (
     <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
       <h2 className="font-display text-xl font-bold text-navy">
-        Checked in <span className="font-sans text-base font-normal text-muted">· {checked.length}</span>
+        Checked In <span className="font-sans text-base font-normal text-muted">· {checked.length}</span>
       </h2>
       {checked.length === 0 ? (
         <p className="mt-4 text-sm text-muted">No one yet. New check-ins appear here within a few seconds.</p>
@@ -341,7 +341,7 @@ function CheckedInList({
       )}
 
       <div className="mt-5 border-t border-line pt-4">
-        <p className="text-sm font-medium text-ink">Add someone by hand</p>
+        <p className="text-sm font-medium text-ink">Add Someone by Hand</p>
         <p className="text-xs text-muted">For a dead phone or a late arrival. Works after check-in closes too.</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <select
@@ -408,7 +408,7 @@ function ApplyPanel({ sessionId, count, stillOpen }: { sessionId: string; count:
 
   return (
     <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
-      <h2 className="font-display text-xl font-bold text-navy">Apply to the points table</h2>
+      <h2 className="font-display text-xl font-bold text-navy">Apply to the Points Table</h2>
       <p className="mt-1 text-sm text-muted">
         Turns each checked-in brother&apos;s cell Present. Cells already Excused or Out of Chapter are never changed.
         {stillOpen && " You can apply now and again after check-in closes."}
@@ -440,7 +440,7 @@ function ApplyPanel({ sessionId, count, stillOpen }: { sessionId: string; count:
           <label className="mt-4 flex items-start gap-3">
             <input id="checkin-mark-rest" type="checkbox" checked={markRest} onChange={(e) => setMarkRest(e.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
             <span className="text-sm text-ink">
-              Mark everyone else Unexcused
+              Mark Everyone Else Unexcused
               <span className="block text-muted">Only brothers whose cell is still empty. Leave this off to do it yourself.</span>
             </span>
           </label>

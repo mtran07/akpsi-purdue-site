@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: { default: "Member portal", template: "%s | AKPsi Purdue portal" },
+  title: { default: "Member Portal", template: "%s | AKPsi Purdue Portal" },
   robots: { index: false, follow: false },
 };
 

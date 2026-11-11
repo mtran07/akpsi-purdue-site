@@ -7,7 +7,7 @@ import { ExcusalForm, type EventOption } from "@/components/portal/excusal-form"
 import { getEventsForMember, requireMember } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 
-export const metadata: Metadata = { title: "Excusal request" };
+export const metadata: Metadata = { title: "Excusal Request" };
 
 const dateLabel = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Indiana/Indianapolis",
@@ -20,13 +20,13 @@ export default function ExcusePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Member portal"
-        title="Excusal request"
+        eyebrow="Member Portal"
+        title="Excusal Request"
         intro="Can't make a required event? Send it to the secretary here, with proof if you have it."
       />
       <Section>
         <Link href="/portal" className="text-sm font-medium text-navy underline underline-offset-4">
-          ← Back to the portal
+          ← Back to the Portal
         </Link>
         <div className="mt-8">
           <Suspense fallback={<div className="h-96 max-w-2xl animate-pulse rounded-xl bg-paper-alt" />}>

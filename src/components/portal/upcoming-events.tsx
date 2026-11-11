@@ -140,7 +140,7 @@ export function UpcomingEvents({ calendar }: { calendar: ChapterCalendar | null 
         rel="noreferrer"
         className="inline-block rounded-full border border-navy px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white"
       >
-        Add to my Google Calendar
+        Add to My Google Calendar
       </a>
     </div>
   );

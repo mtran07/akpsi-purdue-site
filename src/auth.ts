@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google";
 import { findMember } from "@/lib/portal-data";
 
 /*
-  Sign-in for the member portal: "Sign in with Google". Access to anything
+  Sign-in for the member portal: "Sign In with Google". Access to anything
   brother-only is decided by the Members tab (src/lib/dal.ts).
 
   Speed: asking the sheet "is this a member?" takes a second or more, so the

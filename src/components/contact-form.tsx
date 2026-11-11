@@ -73,7 +73,7 @@ export function ContactForm() {
           disabled={isPending}
           className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-deep disabled:opacity-60"
         >
-          {isPending ? "Sending…" : "Send message"}
+          {isPending ? "Sending…" : "Send Message"}
         </button>
         {state.status === "error" && !isPending && (
           <p role="alert" className="text-sm text-red-700">

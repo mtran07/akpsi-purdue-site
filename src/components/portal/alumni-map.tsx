@@ -141,7 +141,7 @@ export function AlumniMap({
                     )}
                     {onCoffeeChat && (
                       <button type="button" onClick={() => onCoffeeChat(a)} className="text-navy hover:underline">
-                        Coffee chat
+                        Coffee Chat
                       </button>
                     )}
                   </div>

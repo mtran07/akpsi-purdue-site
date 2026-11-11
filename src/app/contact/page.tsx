@@ -13,7 +13,7 @@ export default function ContactPage() {
     <>
       <PageHeader
         eyebrow="Contact"
-        title="Get in touch"
+        title="Get in Touch"
         intro="Thinking about rushing, interested in sponsoring the chapter, or an alum reconnecting? Send us a note."
       />
 
@@ -22,7 +22,7 @@ export default function ContactPage() {
           <ContactForm />
           <aside className="space-y-6 text-sm">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-gold">Follow along</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gold">Follow Along</p>
               <ul className="mt-3 space-y-2">
                 <li>
                   <a href={site.social.instagram} target="_blank" rel="noreferrer" className="font-medium text-navy underline underline-offset-4">
@@ -41,7 +41,7 @@ export default function ContactPage() {
               </ul>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-gold">Where we are</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gold">Where We Are</p>
               <p className="mt-3 text-muted">{site.address}</p>
             </div>
           </aside>

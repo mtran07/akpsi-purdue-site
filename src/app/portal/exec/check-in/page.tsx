@@ -9,19 +9,19 @@ import { getBrothersForMember, getOfficer } from "@/lib/dal";
 import { isPortalConfigured } from "@/lib/portal-data";
 import { getLiveCheckin } from "./actions";
 
-export const metadata: Metadata = { title: "Chapter check-in" };
+export const metadata: Metadata = { title: "Chapter Check-In" };
 
 export default function CheckInConsolePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Member portal · Officers"
-        title="Chapter check-in"
+        eyebrow="Member Portal · Officers"
+        title="Chapter Check-In"
         intro="Put the code on the projector at the start of chapter. Brothers scan it, and you apply the list to the points table."
       />
       <Section>
         <Link href="/portal/exec" className="text-sm font-medium text-navy underline underline-offset-4">
-          ← Back to the exec dashboard
+          ← Back to the Exec Dashboard
         </Link>
         <div className="mt-8">
           <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-paper-alt" aria-label="Loading" />}>

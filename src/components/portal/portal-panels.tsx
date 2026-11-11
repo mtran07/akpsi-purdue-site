@@ -11,7 +11,7 @@ export function SignOutButton() {
   return (
     <form action={signOutOfPortal}>
       <button type="submit" className="text-sm font-medium text-navy underline underline-offset-4">
-        Sign out
+        Sign Out
       </button>
     </form>
   );
@@ -20,7 +20,7 @@ export function SignOutButton() {
 export function NotMemberPanel({ email, name }: { email: string; name: string }) {
   return (
     <Card>
-      <h2 className="font-display text-2xl font-bold text-navy">Request access</h2>
+      <h2 className="font-display text-2xl font-bold text-navy">Request Access</h2>
       <p className="mt-2 text-muted">
         You&apos;re signed in as <span className="font-medium text-ink">{email}</span>, which isn&apos;t on the
         member list yet. Type your full name and we&apos;ll check it against the chapter roster.
@@ -36,7 +36,7 @@ export function NotMemberPanel({ email, name }: { email: string; name: string })
 export function NotConfiguredPanel() {
   return (
     <Card>
-      <h2 className="font-display text-2xl font-bold text-navy">Coming soon</h2>
+      <h2 className="font-display text-2xl font-bold text-navy">Coming Soon</h2>
       <p className="mt-2 text-muted">
         The member portal isn&apos;t switched on yet. Reach out to the Technology Committee for anything you
         need in the meantime.
@@ -94,8 +94,8 @@ export function PortalCallouts({ officerPosition }: { officerPosition?: string |
           className="flex items-center justify-between gap-6 rounded-xl border-2 border-gold bg-gold-soft p-5 text-navy transition hover:brightness-95"
         >
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest">Officers · {officerPosition || "Exec board"}</p>
-            <p className="mt-1 font-display text-xl font-bold">Exec dashboard</p>
+            <p className="text-xs font-semibold uppercase tracking-widest">Officers · {officerPosition || "Exec Board"}</p>
+            <p className="mt-1 font-display text-xl font-bold">Exec Dashboard</p>
             <p className="mt-0.5 text-sm">Access requests, points, attendance, excusals and website messages</p>
           </div>
           <span aria-hidden className="text-2xl">
@@ -104,20 +104,20 @@ export function PortalCallouts({ officerPosition }: { officerPosition?: string |
         </Link>
       )}
       {officerPosition !== undefined && officerPosition !== null && (
-        <QuickLink href="/portal/exec/check-in" title="Chapter check-in" text="Show the QR code at chapter and apply attendance to points" />
+        <QuickLink href="/portal/exec/check-in" title="Chapter Check-In" text="Show the QR code at chapter and apply attendance to points" />
       )}
       <div className="grid gap-4 md:grid-cols-2">
         <Callout
           href="/portal/brothers"
-          eyebrow="Brother directory"
+          eyebrow="Brother Directory"
           title="Emails, phone numbers and pledge classes of active brothers"
         />
-        <Callout href="/portal/alumni" eyebrow="Alumni directory" title="Find Pi Omega alumni by company, major or class" />
+        <Callout href="/portal/alumni" eyebrow="Alumni Directory" title="Find Pi Omega alumni by company, major or class" />
       </div>
       <div className="grid gap-4 md:grid-cols-3">
-        <QuickLink href="/portal/points" title="My points" text="Your points, goal and chapter attendance" />
-        <QuickLink href="/portal/excuse" title="Excusal request" text="Can't make an event? Tell the secretary" />
-        <QuickLink href="/portal/profile" title="My profile" text="Update your major, phone and LinkedIn" />
+        <QuickLink href="/portal/points" title="My Points" text="Your points, goal and chapter attendance" />
+        <QuickLink href="/portal/excuse" title="Excusal Request" text="Can't make an event? Tell the secretary" />
+        <QuickLink href="/portal/profile" title="My Profile" text="Update your major, phone and LinkedIn" />
       </div>
       <Link
         href="/portal/internships"
@@ -125,7 +125,7 @@ export function PortalCallouts({ officerPosition }: { officerPosition?: string |
       >
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-gold">Recruiting</p>
-          <p className="mt-1 font-display text-xl font-bold text-navy">Summer 2027 internships</p>
+          <p className="mt-1 font-display text-xl font-bold text-navy">Summer 2027 Internships</p>
           <p className="mt-0.5 text-sm text-muted">Open roles updated hourly, one-tap apply, and which ones have Pi Omega alumni</p>
         </div>
         <span aria-hidden className="text-2xl text-navy">→</span>
