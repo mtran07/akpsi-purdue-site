@@ -171,3 +171,16 @@ section[id] {
     mask-image: none;
   }
 }
+
+/* Page enter (src/app/template.tsx): the new page is there at once and settles in. */
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    animation: page-enter 180ms ease-out backwards;
+  }
+}
+@keyframes page-enter {
+  from {
+    opacity: 0.4;
+    transform: translateY(6px);
+  }
+}

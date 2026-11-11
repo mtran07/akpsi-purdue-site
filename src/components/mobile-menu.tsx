@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MobileAccountLink } from "@/components/account-button";
 
@@ -11,7 +11,21 @@ import { MobileAccountLink } from "@/components/account-button";
 */
 export function MobileMenu({ items }: { items: { label: string; href: string }[] }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  // The menu's links aren't on screen until it opens, so Next can't preload
+  // them on its own; load every menu page in the background once the browser
+  // is idle, so a tap is instant even right after opening the menu.
+  useEffect(() => {
+    const load = () => items.forEach((item) => router.prefetch(item.href));
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(load, { timeout: 2000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = setTimeout(load, 500);
+    return () => clearTimeout(id);
+  }, [items, router]);
   const [openedOn, setOpenedOn] = useState(pathname);
 
   // Navigating anywhere (including the back button) closes it.
