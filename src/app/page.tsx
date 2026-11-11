@@ -8,6 +8,7 @@ import { CountUp } from "@/components/count-up";
 import { Marquee } from "@/components/marquee";
 import { PresidentMessage } from "@/components/president-message";
 import { HomeHero } from "@/components/home-hero";
+import { SummerSpotlights } from "@/components/summer-spotlights";
 
 export default function HomePage() {
   return (
@@ -57,6 +58,8 @@ export default function HomePage() {
       <Section title={employers.heading} tone="alt">
         <Marquee items={employers.companies} label="Companies where Pi Omega brothers work" />
       </Section>
+
+      <SummerSpotlights />
 
       <section className="bg-gold-soft">
         <div className="reveal mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-4 py-14 sm:px-6 md:flex-row md:items-center">

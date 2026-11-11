@@ -1,0 +1,51 @@
+{
+  "_help": "Summer internship spotlights on the home page (from the Instagram series). Add a square photo to public/images/spotlights/ and a row here. 'detail' is a short tag shown under the company; 'quote' is the brother's own words. Set \"show\": false to hide the whole section.",
+  "show": true,
+  "title": "Summer 2026 Spotlights",
+  "intro": "Where Pi Omega brothers spent their summer, in their own words.",
+  "instagram": "https://www.instagram.com/akpsi_purdue/",
+  "spotlights": [
+    {
+      "name": "Venya",
+      "company": "Microsoft",
+      "detail": "Xbox Devices team",
+      "quote": "I interned at Microsoft on the XBOX Devices team, working on new electronic features for controllers!",
+      "photo": "/images/spotlights/venya.jpg"
+    },
+    {
+      "name": "Siddharth K.",
+      "company": "Intel",
+      "detail": "Software Engineer",
+      "quote": "I worked on automating a test equipment usage within a test engineering environment as a Software Engineer.",
+      "photo": "/images/spotlights/siddharth.jpg"
+    },
+    {
+      "name": "Maria",
+      "company": "Walmart",
+      "detail": "Audit",
+      "quote": "This summer, I gained hands on experience across the full audit process while building skills in GL reconciliation and SOX testing. More than anything, I learned the value of taking ownership and asking questions.",
+      "photo": "/images/spotlights/maria.jpg"
+    },
+    {
+      "name": "Aarna",
+      "company": "Allegiant Airlines",
+      "detail": "Financial Analyst · Las Vegas",
+      "quote": "This summer, I interned in Las Vegas as a Financial Analyst at an airline company!",
+      "photo": "/images/spotlights/aarna.jpg"
+    },
+    {
+      "name": "Kylie",
+      "company": "Ideal Electrical",
+      "detail": "Prototyping & Packaging",
+      "quote": "This summer, I got to brainstorm and develop new tools and supplies to create 3D printed prototypes alongside mechanical engineers. I also got to dive into market research and design packaging with commercialization in mind.",
+      "photo": "/images/spotlights/kylie.jpg"
+    },
+    {
+      "name": "Siya",
+      "company": "Snapchat",
+      "detail": "Data Ingestion team · Palo Alto",
+      "quote": "This summer, I interned on the Data Ingestion team at Snapchat in Palo Alto, California.",
+      "photo": "/images/spotlights/siya.jpg"
+    }
+  ]
+}
