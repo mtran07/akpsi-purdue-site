@@ -1,5 +1,6 @@
 import type { ExecDashboard, Officer } from "@/lib/portal-types";
 import { NamesToggle, Private, PrivateNamesProvider } from "@/components/portal/private-names";
+import { AccessRequestActions } from "@/components/portal/access-request-actions";
 
 // Exec dashboard (officers only). Everything comes from the portal sheet and
 // the secretary's points table; see apps-script/portal.gs, handleDashboard_.
@@ -128,7 +129,7 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="Access requests" action={{ href: data.sheetUrl, label: "Approve in sheet" }}>
+        <Panel title="Access requests" action={{ href: data.sheetUrl, label: "Members tab" }}>
           {pending.length === 0 ? (
             <Empty>No one is waiting. New requests show up here.</Empty>
           ) : (
@@ -145,12 +146,13 @@ export function ExecDashboardView({ officer, data }: { officer: Officer; data: E
                       <Private>{p.note}</Private>
                     </p>
                   )}
+                  <AccessRequestActions email={p.email} name={p.name} />
                 </li>
               ))}
             </ul>
           )}
           {pending.length > 0 && (
-            <p className="mt-4 text-xs text-muted">Change Status from Pending to Active on the Members tab to approve.</p>
+            <p className="mt-4 text-xs text-muted">Approving sends them a welcome email with the sign-in link. You can also change Status to Active on the Members tab.</p>
           )}
         </Panel>
 

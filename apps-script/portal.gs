@@ -54,6 +54,12 @@
  *   CONTACT_EMAIL      where contact-form messages go (falls back to SECRETARY_EMAIL)
  *   POINTS_SHEET_ID    the points table spreadsheet's ID (from its URL)
  *   POINTS_TAB         which tab of it to read (optional, default: the first tab)
+ *   SITE_URL           the website's address for welcome emails
+ *                      (default https://www.akpsipurdue.com)
+ *
+ * Welcome emails: run installWelcomeTrigger() once from the editor (Run ▸
+ * installWelcomeTrigger) so changing a Status to Active on the Members tab
+ * emails that brother. Approving from the exec dashboard sends it too.
  */
 
 var MEMBERS_TAB = 'Members';
@@ -154,6 +160,7 @@ function doPost(e) {
       case 'checkin-remove': return handleCheckinRemove_(body, props);
       case 'checkin-columns': return handleCheckinColumns_(body, props);
       case 'checkin-apply': return handleCheckinApply_(body, props);
+      case 'member-decide': return handleMemberDecide_(body, props);
       default: return json_({ ok: false, error: 'unknown action' });
     }
   } catch (err) {
@@ -1386,4 +1393,165 @@ function cached_(key, seconds, load) {
 
 function json_(payload) {
   return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(ContentService.MimeType.JSON);
+}
+
+
+/* ---------------- Approvals and welcome emails ---------------- */
+
+var WELCOME_HEADER = 'Welcome sent';
+
+/**
+ * Run once from the Apps Script editor. Adds a trigger so editing a Status
+ * cell to Active on the Members tab sends that brother a welcome email.
+ * Safe to run again; it replaces its own trigger instead of adding another.
+ */
+function installWelcomeTrigger() {
+  var props = PropertiesService.getScriptProperties();
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'onMembersEdit') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('onMembersEdit').forSpreadsheet(props.getProperty('SHEET_ID')).onEdit().create();
+  welcomeColumn_(SpreadsheetApp.openById(props.getProperty('SHEET_ID')).getSheetByName(MEMBERS_TAB));
+  Logger.log('Welcome emails are on. Change a Status to Active on the Members tab to send one.');
+}
+
+/** Installable onEdit trigger (see installWelcomeTrigger). Handles typing and pasting several rows. */
+function onMembersEdit(e) {
+  if (!e || !e.range) return;
+  var sheet = e.range.getSheet();
+  if (sheet.getName() !== MEMBERS_TAB) return;
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var statusCol = findColumns_(headers, ['status', 'active'])[0];
+  if (statusCol === undefined) return;
+  var first = e.range.getColumn(), last = first + e.range.getNumColumns() - 1;
+  if (statusCol + 1 < first || statusCol + 1 > last) return;
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return;
+  try {
+    var top = Math.max(2, e.range.getRow());
+    var bottom = e.range.getRow() + e.range.getNumRows() - 1;
+    // A big paste is almost certainly a cleanup, not a batch of approvals.
+    if (bottom - top > 25) return;
+    for (var r = top; r <= bottom; r++) welcomeRowIfActive_(sheet, r);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Dashboard Approve / Decline for a Pending request. Approve sets Status to
+ * Active and sends the welcome email; Decline sets it to Inactive (no email),
+ * which also stops that address from asking again.
+ */
+function handleMemberDecide_(body, props) {
+  requireOfficer_(props, body.officerEmail);
+  var email = clean_(body.email, 200).toLowerCase();
+  var approve = body.decision === 'approve';
+  if (!email || (body.decision !== 'approve' && body.decision !== 'decline')) return json_({ ok: false, error: 'bad request' });
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return json_({ ok: false, error: 'busy, try again' });
+  try {
+    var sheet = SpreadsheetApp.openById(props.getProperty('SHEET_ID')).getSheetByName(MEMBERS_TAB);
+    var values = sheet.getDataRange().getValues();
+    var emailCol = findColumns_(values[0], ['email', 'emailaddress', 'googleemail'])[0];
+    var statusCol = findColumns_(values[0], ['status', 'active'])[0];
+    if (emailCol === undefined || statusCol === undefined) return json_({ ok: false, error: 'Members tab needs Email and Status columns' });
+    for (var i = 1; i < values.length; i++) {
+      if (String(values[i][emailCol]).trim().toLowerCase() !== email) continue;
+      if (String(values[i][statusCol]).trim().toLowerCase() !== PENDING_STATUS.toLowerCase()) {
+        return json_({ ok: true, data: { result: 'not-pending' } });
+      }
+      sheet.getRange(i + 1, statusCol + 1).setValue(approve ? 'Active' : 'Inactive');
+      var emailed = approve ? welcomeRowIfActive_(sheet, i + 1) : false;
+      return json_({ ok: true, data: { result: approve ? 'approved' : 'declined', emailed: emailed } });
+    }
+    return json_({ ok: true, data: { result: 'not-found' } });
+  } catch (err) {
+    return json_({ ok: false, error: String(err && err.message ? err.message : err) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Sends the welcome email for one Members row if it's Active and hasn't had one. Returns true if sent. */
+function welcomeRowIfActive_(sheet, row) {
+  var welcomeCol = welcomeColumn_(sheet, row);
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var emailCol = findColumns_(headers, ['email', 'emailaddress', 'googleemail'])[0];
+  var nameCol = findColumns_(headers, ['name', 'fullname'])[0];
+  var statusCol = findColumns_(headers, ['status', 'active'])[0];
+  if (emailCol === undefined || statusCol === undefined) return false;
+  var values = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var email = String(values[emailCol] || '').trim().toLowerCase();
+  if (String(values[statusCol] || '').trim().toLowerCase() !== 'active') return false;
+  if (String(values[welcomeCol - 1] || '').trim()) return false;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
+  var name = nameCol === undefined ? '' : String(values[nameCol] || '').trim();
+  try {
+    sendWelcome_(email, name);
+    sheet.getRange(row, welcomeCol).setValue(new Date());
+    return true;
+  } catch (err) {
+    sheet.getRange(row, welcomeCol).setValue('Failed: ' + String(err && err.message ? err.message : err).slice(0, 80));
+    return false;
+  }
+}
+
+/**
+ * Finds (or adds) the "Welcome sent" column on the Members tab; returns its
+ * 1-based index. skipRow (1-based) is left unmarked when the column is new,
+ * so the brother being approved right now still gets their email.
+ */
+function welcomeColumn_(sheet, skipRow) {
+  var lastCol = Math.max(1, sheet.getLastColumn());
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var found = findColumns_(headers, [normalizeHeader_(WELCOME_HEADER)])[0];
+  if (found !== undefined) return found + 1;
+  sheet.getRange(1, lastCol + 1).setValue(WELCOME_HEADER);
+  // Everyone already active when this column appears counts as welcomed, so
+  // later sorting or pasting on the tab can never email the whole chapter.
+  var statusCol = findColumns_(headers, ['status', 'active'])[0];
+  var rows = sheet.getLastRow() - 1;
+  if (rows > 0) {
+    var statuses = statusCol === undefined ? null : sheet.getRange(2, statusCol + 1, rows, 1).getValues();
+    var marks = [];
+    for (var i = 0; i < rows; i++) {
+      var status = statuses ? String(statuses[i][0] || '').trim().toLowerCase() : '';
+      marks.push([ALLOWED_STATUSES.indexOf(status) !== -1 && i + 2 !== skipRow ? 'Already a member' : '']);
+    }
+    sheet.getRange(2, lastCol + 1, rows, 1).setValues(marks);
+  }
+  return lastCol + 1;
+}
+
+function sendWelcome_(email, name) {
+  var site = String(PropertiesService.getScriptProperties().getProperty('SITE_URL') || 'https://www.akpsipurdue.com').replace(/\/+$/, '');
+  var first = String(name || '').split(/\s+/)[0];
+  var hello = first ? 'Hi ' + first + ',' : 'Hi,';
+  var link = site + '/sign-in';
+  var esc = function (t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+  MailApp.sendEmail({
+    to: email,
+    name: 'AKPsi Pi Omega',
+    subject: "You're in: AKPsi brother portal",
+    body: hello + '\n\n' +
+      'Your access to the Pi Omega brother portal was approved.\n\n' +
+      'Sign in here with this Google account (' + email + '):\n' + link + '\n\n' +
+      "In the portal you can check your points, send an excusal request, find brothers and alumni, and update your profile.\n\n" +
+      'Questions? Reply to this email or reach out to the Technology Committee.\n\n' +
+      'Alpha Kappa Psi, Pi Omega Chapter',
+    htmlBody:
+      '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1f2937;max-width:520px;line-height:1.5">' +
+      '<p style="font-family:Georgia,serif;font-size:28px;font-weight:bold;color:#c9a227;margin:0 0 4px">AK&Psi;</p>' +
+      '<p style="margin:0 0 20px;color:#6b7280">Purdue &middot; Pi Omega</p>' +
+      '<p>' + esc(hello) + '</p>' +
+      '<p>Your access to the <b>Pi Omega brother portal</b> was approved.</p>' +
+      '<p style="margin:24px 0"><a href="' + esc(link) + '" style="background:#0b2545;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:999px;font-weight:bold;display:inline-block">Sign in to the portal</a></p>' +
+      '<p>Use this Google account: <b>' + esc(email) + '</b></p>' +
+      '<p>In the portal you can check your points, send an excusal request, find brothers and alumni, and update your profile.</p>' +
+      '<p style="color:#6b7280;font-size:13px;margin-top:28px">Questions? Reply to this email or reach out to the Technology Committee.<br>Alpha Kappa Psi, Pi Omega Chapter</p>' +
+      '</div>'
+  });
 }
