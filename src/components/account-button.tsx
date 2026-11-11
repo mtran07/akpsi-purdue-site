@@ -67,7 +67,7 @@ export function MobileAccountLink() {
   return (
     <Link
       href={who.state === "in" ? "/portal" : "/sign-in"}
-      className="mt-1 block rounded-md border-t border-white/10 px-3 py-2.5 text-sm font-semibold text-gold hover:bg-white/10"
+      className="mt-2 block border-t border-white/10 px-3 pb-3 pt-4 text-base font-semibold text-gold hover:text-white"
     >
       {who.state === "in" ? `Member portal · ${who.name.split(" ")[0]}` : "Sign in"}
     </Link>
